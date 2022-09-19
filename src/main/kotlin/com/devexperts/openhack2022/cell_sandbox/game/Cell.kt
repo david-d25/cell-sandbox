@@ -23,6 +23,7 @@ class Cell (
 ) {
     companion object {
         const val COLLISION_FACTOR = 100
+        const val MIN_MASS = 50
     }
 
     val radius get() = sqrt(mass/Math.PI)
@@ -90,19 +91,19 @@ class Cell (
         }
 
         Arc2D.Double(
-            center.x - radius,
-            center.y - radius,
-            radius*2,
-            radius*2,
+            center.x - radius, center.y - radius,
+            radius*2, radius*2,
             if (obstacles.isEmpty()) 0.0 else Math.toDegrees(center.to(obstacles.last().second).angle()),
-            if (obstacles.isEmpty()) 360.0 else if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle()) 360 - Math.toDegrees(center.to(obstacles.last().second).angle() - center.to(obstacles.first().first).angle()) else Math.toDegrees(center.to(obstacles.first().first).angle() - center.to(obstacles.last().second).angle()),
+            if (obstacles.isEmpty()) 360.0 else
+                if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle())
+                    360 - Math.toDegrees(center.to(obstacles.last().second).angle() - center.to(obstacles.first().first).angle())
+                else
+                    Math.toDegrees(center.to(obstacles.first().first).angle() - center.to(obstacles.last().second).angle()),
             Arc2D.PIE
         ).also {
             graphics.color = rgb
-//            graphics.color = rgb.darker().darker()
             graphics.fill(it)
             graphics.color = rgb.darker()
-//            graphics.color = rgb.darker().darker().darker()
             it.arcType = Arc2D.OPEN
             graphics.draw(it)
         }
@@ -123,7 +124,7 @@ class Cell (
             graphics.color = rgb.darker()
             graphics.draw(obstacleShape)
 
-            if (index != obstacles.size - 1) {
+            if (index != obstacles.size - 1 && obstacle.second != obstacles[index + 1].first) {
                 val next = obstacles[index + 1]
 
                 val shape = Arc2D.Double(
@@ -155,16 +156,22 @@ class Cell (
     fun update(world: World, delta: Double) {
         speed += world.gravity * delta
 
-        for (cell in world.cells) {
-            if (cell == this) continue
-            val intersections = testCirclesIntersection(center, radius, cell.center, cell.radius)
-            if (intersections.size == 2) {
-                val projection = (intersections.first() + intersections.last())/2
-                val depth = 1 - center.distance(projection)/radius
-                val oppositeForce = projection.to(center)
-                val hardnessCoefficient = (-1/(depth/2 - 1) - 1).pow(1/genome.hardness)
+        for (other in world.cells) {
+            if (other == this) continue
+            if (center.distance(other.center) > radius) {
+                val intersections = testCirclesIntersection(center, radius, other.center, other.radius)
+                if (intersections.size == 2) {
+                    val projection = (intersections.first() + intersections.last())/2
+                    val depth = 1 - center.distance(projection)/radius
+                    val oppositeForce = projection.to(center)
+                    val hardnessCoefficient = (-1/(depth/2 - 1) - 1).pow(1/genome.hardness)
+                    val dumpingForce = -speed
+                    speed += (oppositeForce * COLLISION_FACTOR * hardnessCoefficient + dumpingForce) * delta
+                }
+            } else {
+                val oppositeForce = other.center.to(center)
                 val dumpingForce = -speed
-                speed += (oppositeForce * COLLISION_FACTOR * hardnessCoefficient + dumpingForce) * delta
+                speed += (oppositeForce * COLLISION_FACTOR + dumpingForce) * delta
             }
         }
 
@@ -192,21 +199,28 @@ class Cell (
             }
         }
 
-        if (mass > genome.splitMass)
+        mass -= calculateLiveCost() * delta
+        if (mass < MIN_MASS)
+            kill(world)
+        else if (mass > genome.splitMass)
             split(world)
 
-        center.x = center.x.coerceIn(0.0..world.width)
-        center.y = center.y.coerceIn(0.0..world.height)
+        center.x = center.x.coerceIn(1.0..world.width - 1)
+        center.y = center.y.coerceIn(1.0..world.height - 1)
+    }
+
+    private fun calculateLiveCost(): Double {
+        return 0.1 * mass
     }
 
     private fun split(world: World) {
         world.cells.remove(this)
 
-        val child1 = Cell(center, speed, mass/2, angle + genome.child1Angle, genome.child1Genome!!)
-        val child2 = Cell(center, speed, mass/2, angle + genome.child2Angle, genome.child2Genome!!)
+        val child1 = Cell(center, speed, mass/2, angle + genome.splitAngle + genome.child1Angle, genome.child1Genome!!)
+        val child2 = Cell(center, speed, mass/2, angle - genome.splitAngle + genome.child2Angle, genome.child2Genome!!)
 
         child1.center += Vector2(1, 0).rotate(angle + genome.splitAngle)
-        child1.center += Vector2(1, 0).rotate(angle - genome.splitAngle)
+        child2.center += Vector2(1, 0).rotate(angle - genome.splitAngle)
 
         world.cells.add(child1)
         world.cells.add(child2)

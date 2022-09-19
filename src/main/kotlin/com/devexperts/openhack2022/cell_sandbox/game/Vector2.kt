@@ -2,7 +2,7 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import kotlin.math.*
 
-class Vector2 (var x: Double, var y: Double) {
+data class Vector2 (var x: Double, var y: Double) {
     constructor (x: Number, y: Number): this(x.toDouble(), y.toDouble())
 
     val length get() = sqrt(x.pow(2) + y.pow(2))
@@ -24,6 +24,4 @@ class Vector2 (var x: Double, var y: Double) {
     fun rotate(angle: Double) = Vector2(x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle))
 
     fun pow(factor: Double) = Vector2(x.pow(factor), y.pow(factor))
-
-    override fun toString() = "Vector2 ($x, $y)"
 }

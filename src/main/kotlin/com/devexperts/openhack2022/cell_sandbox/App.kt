@@ -31,7 +31,12 @@ fun main() {
         )
         genome.child1Genome = genome
         genome.child2Genome = genome
-        world.cells += Cell(Vector2(Math.random()*world.width, Math.random()*50), Vector2(0, 0), 120.0, 4.0, genome)
+        world.cells += Cell(
+            Vector2(Math.random()*world.width, Math.random()*50),
+            Vector2(0, 0),
+            120.0,
+            Math.toRadians(30.0), genome
+        )
     }
     repeat(1500) {
         world.food += Food(Vector2(Math.random()*world.width, Math.random()*world.height), 12.0)

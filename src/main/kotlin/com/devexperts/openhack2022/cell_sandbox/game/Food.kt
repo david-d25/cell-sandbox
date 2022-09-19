@@ -6,7 +6,7 @@ import java.awt.geom.Arc2D
 import kotlin.math.pow
 
 class Food (var center: Vector2, var mass: Double) {
-    val radius get() = (mass/Math.PI).pow(1/3)
+    val radius get() = (mass/Math.PI).pow(1/4)
 
     fun render(world: World, graphics: Graphics2D) {
         graphics.color = Color(170, 104, 33, 128)
