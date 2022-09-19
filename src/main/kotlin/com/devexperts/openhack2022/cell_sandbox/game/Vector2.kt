@@ -23,5 +23,5 @@ data class Vector2 (var x: Double, var y: Double) {
 
     fun rotate(angle: Double) = Vector2(x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle))
 
-    fun pow(factor: Double) = Vector2(x.pow(factor), y.pow(factor))
+    fun unit() = Vector2(x/length, y/length)
 }

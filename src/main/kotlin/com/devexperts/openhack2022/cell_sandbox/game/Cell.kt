@@ -24,12 +24,13 @@ class Cell (
     companion object {
         const val COLLISION_FACTOR = 100
         const val MIN_MASS = 50
+        const val STROKE_WIDTH = 1f
     }
 
     val radius get() = sqrt(mass/Math.PI)
 
     fun render(world: World, graphics: Graphics2D) {
-        graphics.stroke = BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER)
+        graphics.stroke = BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER)
 
         val rgb = Color(
             (1 - genome.cyanPigment).toFloat(),
@@ -90,9 +91,11 @@ class Cell (
             }
         }
 
+        val visualRadius = radius - STROKE_WIDTH/2
+
         Arc2D.Double(
-            center.x - radius, center.y - radius,
-            radius*2, radius*2,
+            center.x - visualRadius, center.y - visualRadius,
+            visualRadius*2, visualRadius*2,
             if (obstacles.isEmpty()) 0.0 else Math.toDegrees(center.to(obstacles.last().second).angle()),
             if (obstacles.isEmpty()) 360.0 else
                 if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle())
@@ -109,17 +112,25 @@ class Cell (
         }
 
         obstacles.forEachIndexed { index, obstacle ->
+            val visualObstacle = Pair(
+                obstacle.first + obstacle.first.to(center).unit() * STROKE_WIDTH/2,
+                obstacle.second + obstacle.second.to(center).unit() * STROKE_WIDTH/2
+            )
+
             val triangle = Path2D.Double().also {
                 it.moveTo(center.x, center.y)
-                it.lineTo(obstacle.first.x, obstacle.first.y)
-                it.lineTo(obstacle.second.x, obstacle.second.y)
+                it.lineTo(visualObstacle.first.x, visualObstacle.first.y)
+                it.lineTo(visualObstacle.second.x, visualObstacle.second.y)
                 it.closePath()
             }
 
             graphics.color = rgb
             graphics.fill(triangle)
 
-            val obstacleShape = Line2D.Double(obstacle.first.x, obstacle.first.y, obstacle.second.x, obstacle.second.y)
+            val obstacleShape = Line2D.Double(
+                visualObstacle.first.x, visualObstacle.first.y,
+                visualObstacle.second.x, visualObstacle.second.y
+            )
 
             graphics.color = rgb.darker()
             graphics.draw(obstacleShape)
@@ -128,10 +139,10 @@ class Cell (
                 val next = obstacles[index + 1]
 
                 val shape = Arc2D.Double(
-                    center.x - radius,
-                    center.y - radius,
-                    radius*2,
-                    radius*2,
+                    center.x - visualRadius,
+                    center.y - visualRadius,
+                    visualRadius*2,
+                    visualRadius*2,
                     Math.toDegrees(center.to(obstacle.second).angle()),
                     Math.toDegrees(center.to(next.first).angle() - center.to(obstacle.second).angle()),
                     Arc2D.PIE
