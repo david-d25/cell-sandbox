@@ -1,9 +1,6 @@
 package com.devexperts.openhack2022.cell_sandbox.game
 
-import com.devexperts.openhack2022.cell_sandbox.util.projectPointOnLine
-import com.devexperts.openhack2022.cell_sandbox.util.testCirclesIntersection
-import com.devexperts.openhack2022.cell_sandbox.util.testLineAndCircleIntersection
-import com.devexperts.openhack2022.cell_sandbox.util.testLinesIntersection
+import com.devexperts.openhack2022.cell_sandbox.geom.*
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D

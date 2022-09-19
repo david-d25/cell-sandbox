@@ -1,5 +1,6 @@
 package com.devexperts.openhack2022.cell_sandbox.game
 
+import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Arc2D

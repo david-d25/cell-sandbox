@@ -1,6 +1,5 @@
-package com.devexperts.openhack2022.cell_sandbox.util
+package com.devexperts.openhack2022.cell_sandbox.geom
 
-import com.devexperts.openhack2022.cell_sandbox.game.Vector2
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt

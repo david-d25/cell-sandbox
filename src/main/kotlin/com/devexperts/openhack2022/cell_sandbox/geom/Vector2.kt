@@ -1,4 +1,4 @@
-package com.devexperts.openhack2022.cell_sandbox.game
+package com.devexperts.openhack2022.cell_sandbox.geom
 
 import kotlin.math.*
 
