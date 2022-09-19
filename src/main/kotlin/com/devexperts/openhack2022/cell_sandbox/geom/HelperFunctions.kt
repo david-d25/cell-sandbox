@@ -86,6 +86,14 @@ fun testLinesIntersection(
     ) intersection else null
 }
 
+fun projectPointOnLine(point: Vector2, line: Pair<Vector2, Vector2>): Vector2 {
+    val a = line.first
+    val b = line.second
+    if (a.x == b.x)
+        return Vector2(a.x, point.y)
+    return a + a.to(b) * a.to(point).dot(a.to(b)) / a.to(b).dot(a.to(b))
+}
+
 private fun testVerticalLineIntersection(
     verticalLine: Pair<Vector2, Vector2>,
     otherLine: Pair<Vector2, Vector2>
@@ -102,12 +110,4 @@ private fun testVerticalLineIntersection(
     val avgY = (verticalLine.first.y + verticalLine.second.y)/2
     val height = abs(verticalLine.first.y - verticalLine.second.y)
     return if (abs(intersection.y - avgY) <= height/2) intersection else null
-}
-
-fun projectPointOnLine(point: Vector2, line: Pair<Vector2, Vector2>): Vector2 {
-    val a = line.first
-    val b = line.second
-    if (a.x == b.x)
-        return Vector2(a.x, point.y)
-    return a + a.to(b) * a.to(point).dot(a.to(b)) / a.to(b).dot(a.to(b))
 }

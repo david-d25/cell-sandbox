@@ -227,8 +227,8 @@ class Cell (
         val child1 = Cell(center, speed, mass/2, angle + genome.splitAngle + genome.child1Angle, genome.child1Genome!!)
         val child2 = Cell(center, speed, mass/2, angle - genome.splitAngle + genome.child2Angle, genome.child2Genome!!)
 
-        child1.center += Vector2(1, 0).rotate(angle + genome.splitAngle)
-        child2.center += Vector2(1, 0).rotate(angle - genome.splitAngle)
+        child1.center += Vector2(1, 0).rotate(angle + genome.splitAngle - Math.PI/2)
+        child2.center += Vector2(1, 0).rotate(angle + genome.splitAngle + Math.PI/2)
 
         world.cells.add(child1)
         world.cells.add(child2)
