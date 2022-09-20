@@ -17,7 +17,7 @@ class Cell (
     val genome: Genome
 ) {
     companion object {
-        const val COLLISION_FACTOR = 1000
+        const val COLLISION_FACTOR = 100
         const val MIN_MASS = 75
         const val STROKE_WIDTH = 1f
         const val MAX_FOOD_ABSORBING_SPEED = 50f
