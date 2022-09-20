@@ -7,9 +7,7 @@ import java.awt.Graphics2D
 import java.awt.geom.Arc2D
 import java.awt.geom.Line2D
 import java.awt.geom.Path2D
-import kotlin.math.PI
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class Cell (
     var center: Vector2,
@@ -20,8 +18,9 @@ class Cell (
 ) {
     companion object {
         const val COLLISION_FACTOR = 100
-        const val MIN_MASS = 50
+        const val MIN_MASS = 75
         const val STROKE_WIDTH = 1f
+        const val MAX_FOOD_ABSORBING_SPEED = 50f
     }
 
     val radius get() = sqrt(mass/Math.PI)
@@ -202,8 +201,9 @@ class Cell (
 
         world.food.forEach {
             if (this.center.distance(it.center) < radius + it.radius) {
-                mass += it.mass
-                world.food.remove(it)
+                val massToEat = min(it.mass, MAX_FOOD_ABSORBING_SPEED * delta)
+                mass += massToEat
+                it.mass -= massToEat
             }
         }
 
