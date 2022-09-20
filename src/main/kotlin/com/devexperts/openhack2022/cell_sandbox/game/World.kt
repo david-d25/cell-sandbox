@@ -43,6 +43,7 @@ class World (
         repeat(10) {
             food += Food(Vector2(Math.random() * width, Math.random() * height), 25.0)
         }
+
         food.forEach { it.update(this, delta) }
         cells.forEach { it.update(this, delta) }
     }

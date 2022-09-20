@@ -12,7 +12,7 @@ fun main() {
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame.isVisible = true
 
-    val world = World(500.0, 300.0, Vector2(0, 20), 0.3)
+    val world = World(500.0, 300.0, Vector2(0, 10), 0.8, 0.1)
     val camera = Camera(Vector2(world.width/2, world.height/2), world.height*1.2)
 
     val areaView = AreaView(world, camera)
@@ -28,10 +28,9 @@ fun main() {
             Math.random(),
             0.5,
             300.0,
-            Math.PI/6, 0.0, 0.0, null, null
+            Math.PI/6, 0.0, 0.0, Pair(null, null)
         )
-        genome.child1Genome = genome
-        genome.child2Genome = genome
+        genome.children = Pair(genome, genome)
         world.cells += Cell(
             Vector2(Math.random()*world.width, Math.random()*50),
             Vector2(0, 0),
@@ -45,6 +44,7 @@ fun main() {
     // -------
 
     Thread {
+        // TODO make fixed-delta system
         var oldTime = System.currentTimeMillis()
         while (true) {
             val newTime = System.currentTimeMillis()

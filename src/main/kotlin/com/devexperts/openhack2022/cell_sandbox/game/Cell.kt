@@ -17,7 +17,7 @@ class Cell (
     val genome: Genome
 ) {
     companion object {
-        const val COLLISION_FACTOR = 100
+        const val COLLISION_FACTOR = 1000
         const val MIN_MASS = 75
         const val STROKE_WIDTH = 1f
         const val MAX_FOOD_ABSORBING_SPEED = 50f
@@ -224,8 +224,8 @@ class Cell (
     private fun split(world: World) {
         world.cells.remove(this)
 
-        val child1 = Cell(center, speed, mass/2, angle + genome.splitAngle + genome.child1Angle, genome.child1Genome!!)
-        val child2 = Cell(center, speed, mass/2, angle - genome.splitAngle + genome.child2Angle, genome.child2Genome!!)
+        val child1 = Cell(center, speed, mass/2, angle + genome.splitAngle + genome.child1Angle, genome.children.first!!.copy().also { it.applyRadiation(world.radiation) })
+        val child2 = Cell(center, speed, mass/2, angle - genome.splitAngle + genome.child2Angle, genome.children.second!!.copy().also { it.applyRadiation(world.radiation) })
 
         child1.center += Vector2(1, 0).rotate(angle + genome.splitAngle - Math.PI/2)
         child2.center += Vector2(1, 0).rotate(angle + genome.splitAngle + Math.PI/2)
