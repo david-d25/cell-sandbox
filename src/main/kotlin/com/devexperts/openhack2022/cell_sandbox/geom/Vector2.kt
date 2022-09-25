@@ -24,4 +24,6 @@ data class Vector2 (var x: Double, var y: Double) {
     fun rotate(angle: Double) = Vector2(x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle))
 
     fun unit() = Vector2(x/length, y/length)
+
+    fun isNaN() = this.x.isNaN() || this.y.isNaN()
 }
