@@ -1,50 +1,77 @@
 package com.devexperts.openhack2022.cell_sandbox.game
 
+import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
+import com.devexperts.openhack2022.cell_sandbox.game.renderer.FoodRenderer
+import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
+import com.devexperts.openhack2022.cell_sandbox.game.state.BorderState
+import com.devexperts.openhack2022.cell_sandbox.game.updater.CellUpdater
+import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
-import java.util.concurrent.ConcurrentLinkedDeque
 
-class World (
-    val width: Double,
-    val height: Double,
-    val gravity: Vector2 = Vector2(0, 0),
-    val viscosity: Double = 0.0,
-    val radiation: Double = 0.0
-) {
-    companion object {
-        val BACKGROUND_COLOR = Color(225, 225, 255)
-    }
+class World (val settings: WorldSettings) {
 
-    val food: ConcurrentLinkedDeque<Food> = ConcurrentLinkedDeque()
-    val cells: ConcurrentLinkedDeque<Cell> = ConcurrentLinkedDeque()
+    private val foodRenderer = FoodRenderer()
+    private val cellRenderer = CellRenderer()
 
-    val walls = arrayOf(
-        Pair(Vector2(0, 0), Vector2(width, 0)),
-        Pair(Vector2(width, 0), Vector2(width, height)),
-        Pair(Vector2(width, height), Vector2(0, height)),
-        Pair(Vector2(0, height), Vector2(0, 0))
+    private val foodUpdater = FoodUpdater()
+    private val cellUpdater = CellUpdater()
+
+    @Volatile
+    var area = AreaState(
+        200.0,
+        100.0,
+        Vector2(0, 10),
+        0.3,
+        0.1,
+        mutableSetOf(),
+        mutableSetOf(),
+        mutableSetOf()
     )
 
+    init {
+        area = area.copy(
+            borders = mutableSetOf(
+                BorderState(Vector2(0, 0), Vector2(area.width, 0)),
+                BorderState(Vector2(area.width, 0), Vector2(area.width, area.height)),
+                BorderState(Vector2(area.width, area.height), Vector2(0, area.height)),
+                BorderState(Vector2(0, area.height), Vector2(0, 0))
+            )
+        )
+    }
+
+    @Synchronized
     fun render(graphics: Graphics2D) {
-        Rectangle2D.Double(0.0, 0.0, width, height).also {
+        Rectangle2D.Double(0.0, 0.0, area.width, area.height).also {
             graphics.color = Color.BLACK
             graphics.draw(it)
             graphics.color = BACKGROUND_COLOR
             graphics.fill(it)
         }
 
-        food.forEach { it.render(this, graphics) }
-        cells.forEach { it.render(this, graphics) }
+        area.food.forEach { foodRenderer.render(it, this, graphics) }
+        area.cells.forEach { cellRenderer.render(it, this, graphics) }
     }
 
+    @Synchronized
     fun update(delta: Double) {
-        repeat(10) {
-            food += Food(Vector2(Math.random() * width, Math.random() * height), 25.0)
-        }
+        // TODO some settings should be updated from settings
+        val newArea = AreaState(
+            width = area.width,
+            height = area.height,
+            gravity = area.gravity,
+            viscosity = area.viscosity,
+            radiation = area.radiation,
+            food = area.food.flatMapTo(HashSet()) { foodUpdater.update(it, this, delta) },
+            cells = area.cells.flatMapTo(HashSet()) { cellUpdater.update(it, this, delta) },
+            borders = area.borders
+        )
+        area = newArea
+    }
 
-        food.forEach { it.update(this, delta) }
-        cells.forEach { it.update(this, delta) }
+    companion object {
+        val BACKGROUND_COLOR = Color(225, 225, 255)
     }
 }

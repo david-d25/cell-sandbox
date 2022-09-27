@@ -2,6 +2,7 @@ package com.devexperts.openhack2022.cell_sandbox.gui
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
@@ -14,6 +15,9 @@ class AreaView(
     var world: World,
     var camera: Camera
 ): JPanel(), MouseListener, MouseMotionListener, MouseWheelListener {
+    companion object {
+        val OUTER_AREA_COLOR = Color(75, 75, 75)
+    }
 
     private var lastDragPoint = Point()
 
@@ -33,7 +37,8 @@ class AreaView(
         )
 
         val scale = height/camera.height
-        g.clearRect(0, 0, width, height)
+        g.color = OUTER_AREA_COLOR
+        g.fillRect(0, 0, width, height)
         g.transform = AffineTransform(
             scale, 0.0,
             0.0, scale,

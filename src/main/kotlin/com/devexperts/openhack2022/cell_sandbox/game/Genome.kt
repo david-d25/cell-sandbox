@@ -12,6 +12,7 @@ class Genome (
     var splitAngle: Double,
     var child1Angle: Double,
     var child2Angle: Double,
+    val stickOnSplit: Boolean,
     var children: Pair<Genome?, Genome?>
 ) {
     fun copy() = copyRecursive()
@@ -33,6 +34,7 @@ class Genome (
             splitAngle,
             child1Angle,
             child2Angle,
+            stickOnSplit,
             Pair(null, null)
         )
         copies[this] = result
@@ -63,18 +65,19 @@ class Genome (
         allGenomes: Set<Genome>,
         visitedGenomes: Set<Genome>
     ) {
-        if (radiation > Math.random()) {
-            current.type = CellType.values().random()
-            current.cyanPigment = current.cyanPigment.radiated(0.0, 1.0, radiation)
-            current.magentaPigment = current.magentaPigment.radiated(0.0, 1.0, radiation)
-            current.yellowPigment = current.yellowPigment.radiated(0.0, 1.0, radiation)
-            current.hardness = current.hardness.radiated(0.0, 1.0, radiation)
-            current.splitMass = current.splitMass.radiated(Cell.MIN_MASS.toDouble(), 999999.0, radiation)
-            current.splitAngle = current.splitAngle.radiated(0.0, 2*Math.PI, radiation)
-            current.child1Angle = current.child1Angle.radiated(0.0, 2*Math.PI, radiation)
-            current.child2Angle = current.child2Angle.radiated(0.0, 2*Math.PI, radiation)
+        // TODO
+//        if (radiation > Math.random()) {
+//            current.type = CellType.values().random()
+//            current.cyanPigment = current.cyanPigment.radiated(0.0, 1.0, radiation)
+//            current.magentaPigment = current.magentaPigment.radiated(0.0, 1.0, radiation)
+//            current.yellowPigment = current.yellowPigment.radiated(0.0, 1.0, radiation)
+//            current.hardness = current.hardness.radiated(0.0, 1.0, radiation)
+//            current.splitMass = current.splitMass.radiated(Cell.MIN_MASS.toDouble(), 999999.0, radiation)
+//            current.splitAngle = current.splitAngle.radiated(0.0, 2*Math.PI, radiation)
+//            current.child1Angle = current.child1Angle.radiated(0.0, 2*Math.PI, radiation)
+//            current.child2Angle = current.child2Angle.radiated(0.0, 2*Math.PI, radiation)
             // TODO children
-        }
+//        }
 
         current.children.toList().forEach {
             if (it != null && !visitedGenomes.contains(it))
