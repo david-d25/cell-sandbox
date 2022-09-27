@@ -2,9 +2,8 @@ package com.devexperts.openhack2022.cell_sandbox
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
-import com.devexperts.openhack2022.cell_sandbox.gui.AreaView
+import com.devexperts.openhack2022.cell_sandbox.gui.WorldView
 import java.awt.Dimension
 import javax.swing.JFrame
 
@@ -18,9 +17,9 @@ fun main() {
 
     val camera = Camera(Vector2(world.area.width/2, world.area.height/2), world.area.height*1.2)
 
-    val areaView = AreaView(world, camera)
+    val worldView = WorldView(world, camera)
 
-    frame.contentPane.add(areaView)
+    frame.contentPane.add(worldView)
     frame.revalidate()
     frame.isVisible = true
 
@@ -63,7 +62,7 @@ fun main() {
 
     Thread {
         while (true) {
-            areaView.repaint()
+            worldView.repaint()
             Thread.sleep(1000/30)
         }
     }.also { it.isDaemon = true }.start()

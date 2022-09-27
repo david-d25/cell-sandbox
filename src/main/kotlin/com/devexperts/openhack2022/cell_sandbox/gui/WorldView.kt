@@ -11,7 +11,7 @@ import java.awt.event.*
 import java.awt.geom.AffineTransform
 import javax.swing.JPanel
 
-class AreaView(
+class WorldView(
     var world: World,
     var camera: Camera
 ): JPanel(), MouseListener, MouseMotionListener, MouseWheelListener {
