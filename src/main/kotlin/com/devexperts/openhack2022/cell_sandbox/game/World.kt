@@ -4,6 +4,7 @@ import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.FoodRenderer
 import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
 import com.devexperts.openhack2022.cell_sandbox.game.state.BorderState
+import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
@@ -22,7 +23,7 @@ class World (val settings: WorldSettings) {
     @Volatile
     var area = AreaState(
         200.0,
-        100.0,
+        200.0,
         Vector2(0, 10),
         0.3,
         0.1,
@@ -67,6 +68,7 @@ class World (val settings: WorldSettings) {
             cells = area.cells.flatMapTo(HashSet()) { cellUpdater.update(it, this, delta) },
             borders = area.borders
         )
+        newArea.food.add(FoodState(Vector2(Math.random()*area.width, Math.random()*area.height), 12.0))
         area = newArea
     }
 

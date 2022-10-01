@@ -8,13 +8,14 @@ import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
 import java.lang.IllegalStateException
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.pow
 
 class CellUpdater: Updater<CellState> {
     override fun update(target: CellState, world: World, delta: Double): Set<CellState> {
         with(target) {
-            var newSpeed = target.speed + world.area.gravity/1000 * delta
+            var newSpeed = target.speed + world.area.gravity * delta
             var newCenter = target.center.copy()
             var newMass = target.mass
 
@@ -42,12 +43,7 @@ class CellUpdater: Updater<CellState> {
                     val depth = abs(1 - other.center.distance(pivot)/other.radius)
                     val oppositeForce = pivot.to(newCenter)
                     val hardnessCoefficient = (-1/(depth - 1) - 1).pow(1/genome.hardness)
-                    newSpeed += oppositeForce * hardnessCoefficient * delta
-
-                    val distance = newCenter.distance(other.center)
-                    val masses = mass + other.mass
-                    val positionCorrector = other.center.to(newCenter).unit() * (radius + other.radius - distance)
-                    newCenter += positionCorrector * mass/masses * genome.hardness * delta
+                    newSpeed += (oppositeForce * hardnessCoefficient + (other.speed / 2 - speed / 2) * genome.hardness) * delta
                 }
             }
 
@@ -100,6 +96,6 @@ class CellUpdater: Updater<CellState> {
     }
 
     private fun calculateLiveCost(cell: CellState): Double {
-        return 0.001 * cell.mass
+        return 0.002 * cell.mass
     }
 }

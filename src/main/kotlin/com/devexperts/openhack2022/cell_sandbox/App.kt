@@ -46,7 +46,7 @@ fun main() {
     frame.isVisible = true
 
     // -------
-    repeat(50) {
+    repeat(10) {
         val genome = Genome(
             CellType.PHAGOCYTE,
             Math.random(),
@@ -75,10 +75,10 @@ fun main() {
         while (true) {
             val newTime = System.currentTimeMillis()
             var delta = (newTime - oldTime).toDouble()/1000
-            if (delta > 0.1) delta = 0.1
-            world.update(delta)
+            if (delta > 0.05) delta = 0.05
+            world.update(delta * 10)
             oldTime = newTime
-            Thread.sleep(1000/60)
+            Thread.sleep(1000/30)
         }
     }.also { it.isDaemon = true }.start()
 
