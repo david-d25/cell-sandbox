@@ -27,14 +27,9 @@ class WorldView(
         addMouseWheelListener(this)
     }
 
-    override fun paint(graphics: Graphics) {
-        val g = graphics as Graphics2D
-        g.setRenderingHints(
-            mapOf(
-                KEY_ANTIALIASING to VALUE_ANTIALIAS_ON,
-                KEY_TEXT_ANTIALIASING to VALUE_TEXT_ANTIALIAS_ON
-            )
-        )
+    override fun paintComponent(g: Graphics) {
+        g as Graphics2D
+        g.applyQualityRenderingHints()
 
         val scale = height/camera.height
         g.color = OUTER_AREA_COLOR

@@ -57,13 +57,12 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun update(delta: Double) {
-        // TODO some settings should be updated from settings
         val newArea = AreaState(
             width = area.width,
             height = area.height,
-            gravity = area.gravity,
-            viscosity = area.viscosity,
-            radiation = area.radiation,
+            gravity = settings.gravity.copy(),
+            viscosity = settings.viscosity,
+            radiation = settings.radiation,
             food = area.food.flatMapTo(HashSet()) { foodUpdater.update(it, this, delta) },
             cells = area.cells.flatMapTo(HashSet()) { cellUpdater.update(it, this, delta) },
             borders = area.borders

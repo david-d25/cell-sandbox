@@ -164,6 +164,7 @@ class CellRenderer: Renderer<CellState> {
         override fun getColorModel() = colorModelArg
 
         override fun getRaster(x: Int, y: Int, w: Int, h: Int): Raster {
+            // This is a low-performance solution and should be replaced
             val masks = intArrayOf(0xff0000, 0xff00, 0xff) // Add 0xff000000 if you want alpha
             val buffer = DataBufferInt(
                 IntArray(w * h) { index ->

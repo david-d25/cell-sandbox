@@ -2,12 +2,18 @@ package com.devexperts.openhack2022.cell_sandbox
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
+import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import com.devexperts.openhack2022.cell_sandbox.gui.AsideTabbedPanel
+import com.devexperts.openhack2022.cell_sandbox.gui.WorldSettingsPanel
 import com.devexperts.openhack2022.cell_sandbox.gui.WorldView
-import java.awt.Dimension
+import java.awt.*
 import javax.swing.JFrame
+import javax.swing.UIManager
 
 fun main() {
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+
     val frame = JFrame("Cell Sandbox")
     frame.size = Dimension(800, 600)
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -18,8 +24,24 @@ fun main() {
     val camera = Camera(Vector2(world.area.width/2, world.area.height/2), world.area.height*1.2)
 
     val worldView = WorldView(world, camera)
+    val asidePanel = AsideTabbedPanel()
+    val worldSettingsPanel = WorldSettingsPanel(worldSettings)
 
-    frame.contentPane.add(worldView)
+    asidePanel.addTab("World", worldSettingsPanel)
+
+    frame.layout = GridBagLayout()
+    frame.contentPane.add(worldView, GridBagConstraints().also {
+        it.weightx = 3.0
+        it.weighty = 1.0
+        it.fill = GridBagConstraints.BOTH
+    })
+    frame.contentPane.add(asidePanel, GridBagConstraints().also {
+        it.gridx = 1
+        it.weightx = 1.0
+        it.weighty = 1.0
+        it.fill = GridBagConstraints.BOTH
+    })
+
     frame.revalidate()
     frame.isVisible = true
 
@@ -43,7 +65,7 @@ fun main() {
         )
     }
     repeat(1000) {
-//        world.area.food += FoodState(Vector2(Math.random()*world.area.width, Math.random()*world.area.height), 12.0)
+        world.area.food += FoodState(Vector2(Math.random()*world.area.width, Math.random()*world.area.height), 12.0)
     }
     // -------
 
