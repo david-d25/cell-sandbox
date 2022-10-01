@@ -31,7 +31,7 @@ fun main() {
 
     frame.layout = GridBagLayout()
     frame.contentPane.add(worldView, GridBagConstraints().also {
-        it.weightx = 3.0
+        it.weightx = 8.0
         it.weighty = 1.0
         it.fill = GridBagConstraints.BOTH
     })

@@ -6,11 +6,7 @@ import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.projectPointOnLine
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
-import java.lang.IllegalStateException
-import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.pow
 
 class CellUpdater: Updater<CellState> {
     override fun update(target: CellState, world: World, delta: Double): Set<CellState> {
@@ -23,9 +19,8 @@ class CellUpdater: Updater<CellState> {
                 val intersections = testLineAndCircleIntersection(center, radius, border.a, border.b)
                 if (intersections.isNotEmpty()) {
                     val projection = projectPointOnLine(center, Pair(border.a, border.b))
-                    val depth = abs(1 - projection.to(center).length/radius)
-                    val oppositeForce = projection.to(center)
-                    val hardnessCoefficient = (-1/(depth - 1) - 1).pow(1/genome.hardness)
+                    val oppositeForce = projection.to(center).unit() * (target.radius - projection.distance(target.center))
+                    val hardnessCoefficient = 0.8 + 0.2 * genome.hardness
                     newSpeed += oppositeForce * hardnessCoefficient * delta
                 }
             }
@@ -40,10 +35,11 @@ class CellUpdater: Updater<CellState> {
                         else
                             (newCenter + other.center)/2
 
-                    val depth = abs(1 - other.center.distance(pivot)/other.radius)
-                    val oppositeForce = pivot.to(newCenter)
-                    val hardnessCoefficient = (-1/(depth - 1) - 1).pow(1/genome.hardness)
-                    newSpeed += (oppositeForce * hardnessCoefficient + (other.speed / 2 - speed / 2) * genome.hardness) * delta
+                    val massSum = target.mass + other.mass
+                    val thisMassCoefficient = target.mass / massSum
+                    val oppositeForce = pivot.to(center).unit() * (target.radius - pivot.distance(target.center))
+                    val hardnessCoefficient = 0.8 + 0.2 * genome.hardness
+                    newSpeed += (oppositeForce * hardnessCoefficient + (other.speed / 2 - speed / 2) * genome.hardness * thisMassCoefficient) * delta
                 }
             }
 
