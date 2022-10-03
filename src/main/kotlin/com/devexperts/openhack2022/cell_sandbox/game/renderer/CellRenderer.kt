@@ -2,12 +2,17 @@ package com.devexperts.openhack2022.cell_sandbox.game.renderer
 
 import com.devexperts.openhack2022.cell_sandbox.game.World
 import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
-import com.devexperts.openhack2022.cell_sandbox.geom.*
-import java.awt.*
-import java.awt.geom.*
-import java.awt.image.ColorModel
-import java.awt.image.DataBufferInt
-import java.awt.image.Raster
+import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
+import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
+import com.devexperts.openhack2022.cell_sandbox.geom.testLinesIntersection
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.geom.AffineTransform
+import java.awt.geom.Arc2D
+import java.awt.geom.Line2D
+import java.awt.geom.Path2D
 import kotlin.math.PI
 import kotlin.math.sqrt
 
@@ -64,9 +69,16 @@ class CellRenderer: Renderer<CellState> {
             }
 
             cellShape.closePath()
-            graphics.color = rgb
-            graphics.paint = CustomPaint(target, rgb, obstacles)
+            graphics.color = rgb.darker()
             graphics.fill(cellShape)
+            graphics.color = rgb
+
+            val oldTransform = graphics.transform
+            graphics.transform(AffineTransform.getTranslateInstance(target.center.x, target.center.y))
+            graphics.transform(AffineTransform.getScaleInstance(0.9, 0.9))
+            graphics.transform(AffineTransform.getTranslateInstance(-target.center.x, -target.center.y))
+            graphics.fill(cellShape)
+            graphics.transform = oldTransform
 
             graphics.color = rgb.darker()
             graphics.fill(
@@ -134,59 +146,5 @@ class CellRenderer: Renderer<CellState> {
         }
 
         return obstacles
-    }
-
-    private class CustomPaint(
-        val target: CellState,
-        val rgb: Color,
-        val obstacles: List<Pair<Vector2, Vector2>>,
-    ): Paint {
-        override fun getTransparency() = Transparency.OPAQUE
-
-        override fun createContext(
-            cm: ColorModel,
-            deviceBounds: Rectangle,
-            userBounds: Rectangle2D,
-            xform: AffineTransform,
-            hints: RenderingHints
-        ) = CustomPaintContext(cm, xform, target, rgb, obstacles)
-    }
-
-    private class CustomPaintContext(
-        val colorModelArg: ColorModel,
-        val transform: AffineTransform,
-        val target: CellState,
-        val rgb: Color,
-        val obstacles: List<Pair<Vector2, Vector2>>
-    ): PaintContext {
-        override fun dispose() {}
-
-        override fun getColorModel() = colorModelArg
-
-        override fun getRaster(x: Int, y: Int, w: Int, h: Int): Raster {
-            // This is a low-performance solution and should be replaced
-            val masks = intArrayOf(0xff0000, 0xff00, 0xff) // Add 0xff000000 if you want alpha
-            val buffer = DataBufferInt(
-                IntArray(w * h) { index ->
-                    val deviceSpaceCoords = transform.inverseTransform(
-                        Point2D.Double(
-                            (x + index % w).toDouble(),
-                            (y + index / w).toDouble()
-                        ), null
-                    )
-                    val coords = Vector2(deviceSpaceCoords.x, deviceSpaceCoords.y)
-                    if (target.center.distance(coords) > target.radius - STROKE_WIDTH)
-                        return@IntArray rgb.darker().rgb
-                    obstacles.forEach {
-                        val projection = projectPointOnLine(coords, it)
-                        if (coords.distance(projection) < STROKE_WIDTH)
-                            return@IntArray rgb.darker().rgb
-                    }
-                    rgb.rgb
-                },
-                w * h
-            )
-            return Raster.createPackedRaster(buffer, w, h, w, masks, null)
-        }
     }
 }
