@@ -8,6 +8,7 @@ class WorldSettings {
     var radiation = 0.1
     var foodSpawnRate = 0
 
+    var debugRender = false
     var maxFoodAbsorbingSpeed = 5.0
     var minCellMass = 75.0
 }

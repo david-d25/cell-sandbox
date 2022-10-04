@@ -15,7 +15,7 @@ class Genome (
     val stickOnSplit: Boolean,
     var children: Pair<Genome?, Genome?>
 ) {
-    fun copy() = copyRecursive()
+    fun deepCopy() = copyRecursive()
 
     fun applyRadiation(radiation: Double) {
         applyRadiationRecursive(this, radiation, findAllGenomes(), setOf(this))

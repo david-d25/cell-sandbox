@@ -16,7 +16,6 @@ import java.awt.geom.Path2D
 import kotlin.math.PI
 import kotlin.math.sqrt
 
-
 class CellRenderer: Renderer<CellState> {
     companion object {
         const val STROKE_WIDTH = 1f
@@ -69,10 +68,13 @@ class CellRenderer: Renderer<CellState> {
             }
 
             cellShape.closePath()
+
+            // Outer color
             graphics.color = rgb.darker()
             graphics.fill(cellShape)
-            graphics.color = rgb
 
+            // Inner color
+            graphics.color = rgb
             val oldTransform = graphics.transform
             graphics.transform(AffineTransform.getTranslateInstance(target.center.x, target.center.y))
             graphics.transform(AffineTransform.getScaleInstance(0.9, 0.9))
@@ -80,6 +82,8 @@ class CellRenderer: Renderer<CellState> {
             graphics.fill(cellShape)
             graphics.transform = oldTransform
 
+            // Nucleus
+            graphics.clip = cellShape
             graphics.color = rgb.darker()
             graphics.fill(
                 Arc2D.Double(
@@ -88,7 +92,65 @@ class CellRenderer: Renderer<CellState> {
                     0.0, 360.0,
                     Arc2D.CHORD
                 ))
+            graphics.clip = null
+
+            // Connections
+            graphics.color = Color(0f, 0f, 0f, 0.4f)
+            for ((partnerId, connection) in target.connections) {
+                val partner = world.area.cells[partnerId]
+                if (partner != null) {
+                    val effectiveAngle = target.angle + connection.angle
+                    val surfacePoint = getSurfacePointByAngle(target, effectiveAngle, obstacles)
+                    val lineStart = target.center * 0.2 + surfacePoint * 0.8
+                    graphics.draw(Line2D.Double(lineStart.x, lineStart.y, surfacePoint.x, surfacePoint.y))
+                    if (target.center.distance(partner.center) >= target.radius + partner.radius) {
+                        val otherConnection = partner.connections[target.id]
+                        if (otherConnection != null) {
+                            val otherSurfacePoint =
+                                partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius
+                            graphics.draw(
+                                Line2D.Double(
+                                    surfacePoint.x, surfacePoint.y, otherSurfacePoint.x, otherSurfacePoint.y
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (world.settings.debugRender)
+                renderDebugInfo(target, graphics)
         }
+    }
+
+    private fun getSurfacePointByAngle(
+        target: CellState,
+        angle: Double,
+        obstacles: List<Pair<Vector2, Vector2>>
+    ): Vector2 {
+        val start = target.center
+        val end = target.center + Vector2.unit(angle) * target.radius
+        obstacles.forEach {
+            val intersection = testLinesIntersection(it, Pair(start, end))
+            if (intersection != null)
+                return intersection
+        }
+        return end
+    }
+
+    private fun renderDebugInfo(target: CellState, graphics: Graphics2D) {
+        // Angle
+        graphics.color = Color.GREEN
+        graphics.stroke = BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL)
+        val targetAnglePoint = target.center + Vector2(1, 0).rotate(target.angle) * target.radius
+        graphics.draw(Line2D.Double(target.center.x, target.center.y, targetAnglePoint.x, targetAnglePoint.y))
+
+        // Split line
+        graphics.color = Color.MAGENTA
+        graphics.stroke = BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10f, floatArrayOf(1f, 1f), 0f)
+        val splitLinePoint1 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
+        val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle + Math.PI) * target.radius
+        graphics.draw(Line2D.Double(splitLinePoint1.x, splitLinePoint1.y, splitLinePoint2.x, splitLinePoint2.y))
     }
 
     private fun calculateObstacles(target: CellState, world: World): List<Pair<Vector2, Vector2>> {
@@ -101,7 +163,7 @@ class CellRenderer: Renderer<CellState> {
             obstacles += if (diff < -PI || diff in 0.0..PI) Pair(a, b) else Pair(b, a)
         }
 
-        for (border in world.area.borders) {
+        for (border in world.area.borders.values) {
             val intersections = testLineAndCircleIntersection(target.center, target.radius, border.a, border.b)
             if (intersections.isNotEmpty()) {
                 val a = intersections.first()
@@ -110,7 +172,7 @@ class CellRenderer: Renderer<CellState> {
             }
         }
 
-        for (cell in world.area.cells) {
+        for (cell in world.area.cells.values) {
             if (cell === target) continue
             val intersections = testCirclesIntersection(target.center, target.radius, cell.center, cell.radius)
             if (intersections.size == 2)

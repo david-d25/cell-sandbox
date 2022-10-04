@@ -46,7 +46,7 @@ fun main() {
     frame.isVisible = true
 
     // -------
-    repeat(10) {
+    repeat(1) {
         val genome = Genome(
             CellType.PHAGOCYTE,
             Math.random(),
@@ -54,18 +54,20 @@ fun main() {
             Math.random(),
             0.5,
             300.0,
-            Math.PI/6, 0.0, 0.0, false, Pair(null, null)
+            Math.PI/6, 0.0, 0.0, true, Pair(null, null)
         )
         genome.children = Pair(genome, genome)
-        world.area.cells += CellState(
+        world.add(CellState(
             Vector2(Math.random()*world.area.width, Math.random()*50),
             Vector2(0, 0),
             220.0,
-            0.0, genome
-        )
+            0.0,
+            0.0,
+            genome
+        ))
     }
     repeat(1000) {
-        world.area.food += FoodState(Vector2(Math.random()*world.area.width, Math.random()*world.area.height), 12.0)
+        world.add(FoodState(Vector2(Math.random()*world.area.width, Math.random()*world.area.height), 12.0))
     }
     // -------
 
@@ -78,7 +80,7 @@ fun main() {
             if (delta > 0.05) delta = 0.05
             world.update(delta * 10)
             oldTime = newTime
-            Thread.sleep(1000/30)
+            Thread.sleep(1000/60)
         }
     }.also { it.isDaemon = true }.start()
 

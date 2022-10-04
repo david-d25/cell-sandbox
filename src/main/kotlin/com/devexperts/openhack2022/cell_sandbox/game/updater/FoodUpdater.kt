@@ -1,19 +1,25 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
+import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
 import kotlin.math.min
 
-class FoodUpdater: Updater<FoodState> {
-    override fun update(target: FoodState, world: World, delta: Double): Set<FoodState> {
-        var newMass = target.mass
-        world.area.cells.forEach {
-            if (it.center.distance(target.center) < it.radius + target.radius) {
-                val massToEat = min(target.mass, world.settings.maxFoodAbsorbingSpeed)
-                newMass -= massToEat * delta
+class FoodUpdater: Updater {
+    override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
+        newArea.food.values.forEach {
+            var newMass = it.mass
+            // TODO use a common World-supported interface to detect and process collisions
+            world.area.cells.values.forEach { cell ->
+                if (cell.center.distance(it.center) < cell.radius + it.radius) {
+                    val massToEat = min(it.mass, world.settings.maxFoodAbsorbingSpeed)
+                    newMass -= massToEat * delta
+                }
             }
+            newMass -= 0.001 * delta
+            if (newMass < 1)
+                world.remove(it)
+            else
+                it.mass = newMass
         }
-        newMass -= 0.001 * delta
-        return if (newMass < 1) emptySet() else setOf(target.copy(mass = newMass))
     }
 }

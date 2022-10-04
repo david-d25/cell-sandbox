@@ -26,4 +26,8 @@ data class Vector2 (var x: Double, var y: Double) {
     fun unit() = Vector2(x/length, y/length)
 
     fun isNaN() = this.x.isNaN() || this.y.isNaN()
+
+    companion object {
+        fun unit(angle: Double) = Vector2(cos(angle), sin(angle))
+    }
 }
