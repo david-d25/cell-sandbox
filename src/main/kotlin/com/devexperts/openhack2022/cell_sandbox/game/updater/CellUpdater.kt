@@ -47,7 +47,7 @@ class CellUpdater: Updater {
                     val thisMassCoefficient = oldCell.mass / massSum
                     val oppositeForce = pivot.to(oldCell.center).unit() * (oldCell.radius - pivot.distance(oldCell.center))
                     val hardnessCoefficient = 0.8 + 0.2 * oldCell.genome.hardness
-                    cell.speed += (oppositeForce * hardnessCoefficient + (other.speed / 2 - oldCell.speed / 2) * oldCell.genome.hardness * thisMassCoefficient) * delta
+                    cell.speed += (oppositeForce * hardnessCoefficient + (other.speed * thisMassCoefficient - oldCell.speed * (1 - thisMassCoefficient)) * oldCell.genome.hardness) * delta
                 }
             }
 
@@ -59,7 +59,7 @@ class CellUpdater: Updater {
                         val effectiveConnectionAngle = oldCell.angle + connection.angle
                         val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius/2
                         val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle) * partner.radius/2
-                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * cell.mass * delta
+                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * (oldCell.mass) * delta
                         applyImpulse(cell, effectiveConnectionForceOrigin, connectionForceDirection)
                     }
                 }
