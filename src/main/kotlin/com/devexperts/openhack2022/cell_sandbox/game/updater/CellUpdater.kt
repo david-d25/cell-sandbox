@@ -59,7 +59,7 @@ class CellUpdater: Updater {
                         val effectiveConnectionAngle = oldCell.angle + connection.angle
                         val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius/2
                         val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle) * partner.radius/2
-                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * (oldCell.mass) * delta
+                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * cell.center.distance(partner.center).pow(2) * delta
                         applyImpulse(cell, effectiveConnectionForceOrigin, connectionForceDirection)
                     }
                 }
