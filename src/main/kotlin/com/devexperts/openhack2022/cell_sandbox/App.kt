@@ -54,7 +54,7 @@ fun main() {
             Math.random(),
             0.5,
             300.0,
-            Math.PI/6, 0.0, 0.0, true, Pair(null, null)
+            Math.PI/6, 0.0, 0.0, true, true, true, Pair(null, null)
         )
         genome.children = Pair(genome, genome)
         world.add(CellState(

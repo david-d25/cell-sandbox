@@ -25,4 +25,8 @@ data class CellState (
         genome = genome.deepCopy(),
         connections = ConcurrentHashMap(connections.mapValues { it.value.copy() })
     )
+
+    companion object {
+        const val MIN_MASS = 100
+    }
 }

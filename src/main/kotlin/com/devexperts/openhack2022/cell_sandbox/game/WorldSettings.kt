@@ -9,6 +9,6 @@ class WorldSettings {
     var foodSpawnRate = 0
 
     var debugRender = false
-    var maxFoodAbsorbingSpeed = 5.0
+    var maxFoodAbsorbingSpeed = 4.0
     var minCellMass = 75.0
 }

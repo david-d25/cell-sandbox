@@ -12,13 +12,15 @@ class Genome (
     var splitAngle: Double,
     var child1Angle: Double,
     var child2Angle: Double,
-    val stickOnSplit: Boolean,
+    var stickOnSplit: Boolean,
+    var child1KeepConnections: Boolean,
+    var child2KeepConnections: Boolean,
     var children: Pair<Genome?, Genome?>
 ) {
     fun deepCopy() = copyRecursive()
 
-    fun applyRadiation(radiation: Double) {
-        applyRadiationRecursive(this, radiation, findAllGenomes(), setOf(this))
+    fun applyRadiation(world: World, radiation: Double) {
+        applyRadiationRecursive(world, this, radiation, findAllGenomes(), setOf(this))
     }
 
     private fun copyRecursive(
@@ -35,6 +37,8 @@ class Genome (
             child1Angle,
             child2Angle,
             stickOnSplit,
+            child1KeepConnections,
+            child2KeepConnections,
             Pair(null, null)
         )
         copies[this] = result
@@ -60,28 +64,28 @@ class Genome (
     }
 
     private fun applyRadiationRecursive(
+        world: World,
         current: Genome,
         radiation: Double,
         allGenomes: Set<Genome>,
         visitedGenomes: Set<Genome>
     ) {
-        // TODO
-//        if (radiation > Math.random()) {
-//            current.type = CellType.values().random()
-//            current.cyanPigment = current.cyanPigment.radiated(0.0, 1.0, radiation)
-//            current.magentaPigment = current.magentaPigment.radiated(0.0, 1.0, radiation)
-//            current.yellowPigment = current.yellowPigment.radiated(0.0, 1.0, radiation)
-//            current.hardness = current.hardness.radiated(0.0, 1.0, radiation)
-//            current.splitMass = current.splitMass.radiated(Cell.MIN_MASS.toDouble(), 999999.0, radiation)
-//            current.splitAngle = current.splitAngle.radiated(0.0, 2*Math.PI, radiation)
-//            current.child1Angle = current.child1Angle.radiated(0.0, 2*Math.PI, radiation)
-//            current.child2Angle = current.child2Angle.radiated(0.0, 2*Math.PI, radiation)
+        if (radiation > Math.random()) {
+            current.type = CellType.values().random()
+            current.cyanPigment = current.cyanPigment.radiated(0.0, 1.0, radiation)
+            current.magentaPigment = current.magentaPigment.radiated(0.0, 1.0, radiation)
+            current.yellowPigment = current.yellowPigment.radiated(0.0, 1.0, radiation)
+            current.hardness = current.hardness.radiated(0.0, 1.0, radiation)
+            current.splitMass = current.splitMass.radiated(world.settings.minCellMass, 999999.0, radiation)
+            current.splitAngle = current.splitAngle.radiated(0.0, 2*Math.PI, radiation)
+            current.child1Angle = current.child1Angle.radiated(0.0, 2*Math.PI, radiation)
+            current.child2Angle = current.child2Angle.radiated(0.0, 2*Math.PI, radiation)
             // TODO children
-//        }
+        }
 
         current.children.toList().forEach {
             if (it != null && !visitedGenomes.contains(it))
-                applyRadiationRecursive(it, radiation, allGenomes, visitedGenomes + it)
+                applyRadiationRecursive(world, it, radiation, allGenomes, visitedGenomes + it)
         }
     }
 

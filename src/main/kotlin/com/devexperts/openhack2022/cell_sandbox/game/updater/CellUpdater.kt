@@ -9,10 +9,13 @@ import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.projectPointOnLine
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.*
 
 class CellUpdater: Updater {
+
+    companion object {
+        const val CELL_STICKINESS_DEPTH = 3
+    }
 
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
         newArea.cells.values.forEach { cell ->
@@ -57,10 +60,10 @@ class CellUpdater: Updater {
                     val partnerConnection = partner.connections[cell.id]
                     if (partnerConnection != null) {
                         val effectiveConnectionAngle = oldCell.angle + connection.angle
-                        val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius/2
-                        val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle) * partner.radius/2
-                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * cell.center.distance(partner.center).pow(2) * delta
-                        applyImpulse(cell, effectiveConnectionForceOrigin, connectionForceDirection)
+                        val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(effectiveConnectionAngle) * CELL_STICKINESS_DEPTH
+                        val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle) * partner.radius - Vector2.unit(partner.angle + partnerConnection.angle) * CELL_STICKINESS_DEPTH
+                        val connectionForceDirection = effectiveConnectionForceOrigin.to(effectiveConnectionForceDestination) * delta
+                        applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
                     }
                 }
             }
@@ -90,8 +93,8 @@ class CellUpdater: Updater {
                 val child2Angle = splitNormal + cell.genome.child2Angle
                 val child1Genome = cell.genome.children.first!!.deepCopy()
                 val child2Genome = cell.genome.children.second!!.deepCopy()
-                child1Genome.applyRadiation(world.area.radiation)
-                child2Genome.applyRadiation(world.area.radiation)
+                child1Genome.applyRadiation(world, world.area.radiation)
+                child2Genome.applyRadiation(world, world.area.radiation)
 
                 val child1ConnectionAngle = splitNormal - child1Angle + Math.PI / 2
                 val child2ConnectionAngle = splitNormal - child2Angle - Math.PI / 2
@@ -130,18 +133,18 @@ class CellUpdater: Updater {
         }
     }
 
-    private fun applyImpulse(cell: CellState, impulseOrigin: Vector2, impulseDirection: Vector2) {
+    private fun applyImpulse(oldCell: CellState, cell: CellState, impulseOrigin: Vector2, impulseDirection: Vector2) {
         if (impulseDirection.length == 0.0)
             return
-        val originToCenterAngle = impulseOrigin.to(cell.center).angle()
+        val originToCenterAngle = impulseOrigin.to(oldCell.center).angle()
         val directionRelativeAngle = originToCenterAngle - impulseDirection.angle()
-        val impulseOriginDistance = cell.center.distance(impulseOrigin)
+        val impulseOriginDistance = oldCell.center.distance(impulseOrigin)
         val projectedDistance = sin(directionRelativeAngle) * impulseOriginDistance
-        val translationImpactCoefficient = 1/((projectedDistance/cell.radius).pow(2) + 1)
+        val translationImpactCoefficient = 1/((projectedDistance/oldCell.radius).pow(2) + 1)
         val rotationImpactCoefficient = 1 - translationImpactCoefficient
-        cell.speed += impulseDirection * translationImpactCoefficient / cell.mass
+        cell.speed += impulseDirection * translationImpactCoefficient
         if (projectedDistance != 0.0)
-            cell.angularSpeed -= atan(impulseDirection.length / projectedDistance) * rotationImpactCoefficient / cell.mass
+            cell.angularSpeed -= atan(impulseDirection.length / projectedDistance) * rotationImpactCoefficient
     }
 
     private fun calculateLiveCost(cell: CellState): Double {
