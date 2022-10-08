@@ -11,7 +11,7 @@ import javax.swing.JTextField
 import kotlin.math.abs
 import kotlin.math.round
 
-class NumberSelector: JComponent(), MouseMotionListener, MouseListener, FocusListener, KeyListener {
+class SlidingNumberSelector: JComponent(), MouseMotionListener, MouseListener, FocusListener, KeyListener {
     var softMin = Double.NEGATIVE_INFINITY
     var softMax = Double.POSITIVE_INFINITY
     var hardMin = Double.NEGATIVE_INFINITY
