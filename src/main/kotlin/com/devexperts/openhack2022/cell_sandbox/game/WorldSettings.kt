@@ -6,8 +6,9 @@ data class WorldSettings (
     var gravity: Vector2 = Vector2(0, 0.5),
     var viscosity: Double = 0.2,
     var radiation: Double = 0.1,
-    var foodSpawnRate: Int = 0,
+    var foodSpawnRate: Int = 100,
     var foodSpawnDelay: Long = 0,
+    var foodMass: Double = 12.0,
 
     // Not for players
     var debugRender: Boolean = false,

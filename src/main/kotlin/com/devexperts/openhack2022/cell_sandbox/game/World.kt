@@ -83,7 +83,7 @@ class World (val settings: WorldSettings) {
         val randomNumber = Math.random() * 100 + 1
         val currentTime = System.currentTimeMillis()
         if (randomNumber <= settings.foodSpawnRate && currentTime - foodGenerationLastTime >= settings.foodSpawnDelay) {
-            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), 12.0))
+            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
             foodGenerationLastTime = currentTime
         }
     }
