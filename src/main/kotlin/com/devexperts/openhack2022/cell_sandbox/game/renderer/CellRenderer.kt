@@ -6,112 +6,92 @@ import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLinesIntersection
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.geom.AffineTransform
-import java.awt.geom.Arc2D
-import java.awt.geom.Line2D
-import java.awt.geom.Path2D
+import javafx.scene.canvas.GraphicsContext
+import javafx.scene.paint.Color
+import javafx.scene.shape.*
 import kotlin.math.PI
 import kotlin.math.sqrt
 
 class CellRenderer: Renderer<CellState> {
     companion object {
-        const val STROKE_WIDTH = 1f
+        const val STROKE_WIDTH = 1.0
     }
-    override fun render(target: CellState, world: World, graphics: Graphics2D) {
+    override fun render(target: CellState, world: World, context: GraphicsContext) {
+        context.save()
         with(target) {
-            graphics.stroke = BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)
 
             val rgb = Color(
-                (1 - genome.cyanPigment).toFloat(),
-                (1 - genome.magentaPigment).toFloat(),
-                (1 - genome.yellowPigment).toFloat()
+                1 - genome.cyanPigment,
+                1 - genome.magentaPigment,
+                1 - genome.yellowPigment,
+                1.0
             )
+
+            context.lineWidth = STROKE_WIDTH
+            context.fill = rgb
+            context.stroke = rgb.darker()
+            context.lineCap = StrokeLineCap.ROUND
+            context.lineJoin = StrokeLineJoin.ROUND
 
             val obstacles = calculateObstacles(target, world)
 
-            val cellShape = Path2D.Double()
-            cellShape.append(Arc2D.Double(
-                center.x - radius, center.y - radius,
-                radius*2, radius*2,
+            context.beginPath()
+
+            context.arc(
+                center.x, center.y,
+                radius, radius,
                 if (obstacles.isEmpty()) 0.0 else Math.toDegrees(center.to(obstacles.last().second).angle()),
                 if (obstacles.isEmpty()) 360.0 else
                     if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle())
                         360 - Math.toDegrees(center.to(obstacles.last().second).angle() - center.to(obstacles.first().first).angle())
                     else
                         Math.toDegrees(center.to(obstacles.first().first).angle() - center.to(obstacles.last().second).angle()),
-                Arc2D.OPEN
-            ), false)
+            )
 
             obstacles.forEachIndexed { index, obstacle ->
 
-                cellShape.append(Line2D.Double(
-                    obstacle.first.x, obstacle.first.y,
-                    obstacle.second.x, obstacle.second.y
-                ), true)
+                context.lineTo(obstacle.second.x, obstacle.second.y)
 
                 if (index != obstacles.size - 1 && obstacle.second != obstacles[index + 1].first) {
                     val next = obstacles[index + 1]
 
-                    cellShape.append(Arc2D.Double(
-                        center.x - radius,
-                        center.y - radius,
-                        radius*2,
-                        radius*2,
+                    context.arc(
+                        center.x, center.y,
+                        radius, radius,
                         Math.toDegrees(center.to(obstacle.second).angle()),
-                        Math.toDegrees(center.to(next.first).angle() - center.to(obstacle.second).angle()),
-                        Arc2D.OPEN
-                    ), true)
+                        Math.toDegrees(center.to(next.first).angle() - center.to(obstacle.second).angle())
+                    )
                 }
             }
 
-            cellShape.closePath()
-
-            // Outer color
-            graphics.color = rgb.darker()
-            graphics.fill(cellShape)
-
-            // Inner color
-            graphics.color = rgb
-            val oldTransform = graphics.transform
-            graphics.transform(AffineTransform.getTranslateInstance(target.center.x, target.center.y))
-            graphics.transform(AffineTransform.getScaleInstance(0.9, 0.9))
-            graphics.transform(AffineTransform.getTranslateInstance(-target.center.x, -target.center.y))
-            graphics.fill(cellShape)
-            graphics.transform = oldTransform
+            context.closePath()
+            context.fill()
+            context.stroke()
 
             // Nucleus
-            graphics.clip = cellShape
-            graphics.color = rgb.darker()
-            graphics.fill(
-                Arc2D.Double(
-                    center.x - sqrt(radius), center.y - sqrt(radius),
-                    sqrt(radius) *2, sqrt(radius) *2,
-                    0.0, 360.0,
-                    Arc2D.CHORD
-                ))
-            graphics.clip = null
+            context.fill = rgb.darker()
+            context.fillArc(
+                center.x - sqrt(radius), center.y - sqrt(radius),
+                sqrt(radius)*2, sqrt(radius)*2,
+                0.0, 360.0, ArcType.CHORD
+            )
 
             // Connections
-            graphics.color = Color(0f, 0f, 0f, 0.4f)
+            context.stroke = Color.rgb(0, 0, 0, 0.4)
             for ((partnerId, connection) in target.connections) {
                 val partner = world.area.cells[partnerId]
                 if (partner != null) {
                     val effectiveAngle = target.angle + connection.angle
                     val surfacePoint = getSurfacePointByAngle(target, effectiveAngle, obstacles)
                     val lineStart = target.center * 0.2 + surfacePoint * 0.8
-                    graphics.draw(Line2D.Double(lineStart.x, lineStart.y, surfacePoint.x, surfacePoint.y))
+                    context.strokeLine(lineStart.x, lineStart.y, surfacePoint.x, surfacePoint.y)
                     if (target.center.distance(partner.center) >= target.radius + partner.radius) {
                         val otherConnection = partner.connections[target.id]
                         if (otherConnection != null) {
                             val otherSurfacePoint =
                                 partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius
-                            graphics.draw(
-                                Line2D.Double(
-                                    surfacePoint.x, surfacePoint.y, otherSurfacePoint.x, otherSurfacePoint.y
-                                )
+                            context.strokeLine(
+                                surfacePoint.x, surfacePoint.y, otherSurfacePoint.x, otherSurfacePoint.y
                             )
                         }
                     }
@@ -119,8 +99,9 @@ class CellRenderer: Renderer<CellState> {
             }
 
             if (world.settings.debugRender)
-                renderDebugInfo(target, graphics)
+                renderDebugInfo(target, context)
         }
+        context.restore()
     }
 
     private fun getSurfacePointByAngle(
@@ -138,19 +119,21 @@ class CellRenderer: Renderer<CellState> {
         return end
     }
 
-    private fun renderDebugInfo(target: CellState, graphics: Graphics2D) {
+    private fun renderDebugInfo(target: CellState, context: GraphicsContext) {
+        context.save()
         // Angle
-        graphics.color = Color.GREEN
-        graphics.stroke = BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL)
+        context.stroke = Color.GREEN
+        context.lineWidth = 0.5
         val targetAnglePoint = target.center + Vector2(1, 0).rotate(target.angle) * target.radius
-        graphics.draw(Line2D.Double(target.center.x, target.center.y, targetAnglePoint.x, targetAnglePoint.y))
+        context.strokeLine(target.center.x, target.center.y, targetAnglePoint.x, targetAnglePoint.y)
 
         // Split line
-        graphics.color = Color.MAGENTA
-        graphics.stroke = BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10f, floatArrayOf(1f, 1f), 0f)
+        context.stroke = Color.MAGENTA
+        context.setLineDashes(1.0, 1.0)
         val splitLinePoint1 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
         val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle + Math.PI) * target.radius
-        graphics.draw(Line2D.Double(splitLinePoint1.x, splitLinePoint1.y, splitLinePoint2.x, splitLinePoint2.y))
+        context.strokeLine(splitLinePoint1.x, splitLinePoint1.y, splitLinePoint2.x, splitLinePoint2.y)
+        context.restore()
     }
 
     private fun calculateObstacles(target: CellState, world: World): List<Pair<Vector2, Vector2>> {
