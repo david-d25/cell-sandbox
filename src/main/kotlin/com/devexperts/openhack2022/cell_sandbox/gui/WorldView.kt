@@ -1,75 +1,89 @@
 package com.devexperts.openhack2022.cell_sandbox.gui
 
-import com.devexperts.openhack2022.cell_sandbox.game.*
+import com.devexperts.openhack2022.cell_sandbox.game.Camera
+import com.devexperts.openhack2022.cell_sandbox.game.World
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.Point
-import java.awt.RenderingHints.*
-import java.awt.event.*
-import java.awt.geom.AffineTransform
-import javax.swing.JPanel
+import javafx.animation.AnimationTimer
+import javafx.event.EventHandler
+import javafx.scene.canvas.Canvas
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.ScrollEvent
+import javafx.scene.input.ZoomEvent
+import javafx.scene.layout.StackPane
+import javafx.scene.paint.Color
+import javafx.scene.transform.Affine
 
-class WorldView(
-    var world: World,
-    var camera: Camera
-): JPanel(), MouseListener, MouseMotionListener, MouseWheelListener {
+class WorldView(var world: World, var camera: Camera): StackPane() {
     companion object {
-        val OUTER_AREA_COLOR = Color(75, 75, 75)
+        private const val SCROLL_SENSITIVITY = 0.03
+        private val OUTER_AREA_COLOR: Color = Color.rgb(75, 75, 75)
     }
 
-    private var lastDragPoint = Point()
+    private var lastDragPoint = Vector2(0, 0)
+    private val timer = object : AnimationTimer() {
+        override fun handle(now: Long) {
+            draw()
+        }
+    }
+
+    private val canvas = Canvas()
 
     init {
-        addMouseListener(this)
-        addMouseMotionListener(this)
-        addMouseWheelListener(this)
+        canvas.widthProperty().bind(widthProperty())
+        canvas.heightProperty().bind(heightProperty())
+        children += canvas
+
+        onMousePressed = EventHandler { mousePressed(it) }
+        onMouseDragged = EventHandler { mouseDragged(it) }
+        onScroll = EventHandler { scrolled(it) }
+        onZoom = EventHandler { zoomed(it) }
+        timer.start()
     }
 
-    override fun paintComponent(g: Graphics) {
-        g as Graphics2D
-        g.applyQualityRenderingHints()
+    private fun draw() {
+        val context = canvas.graphicsContext2D
+        context.save()
 
+        context.fill = OUTER_AREA_COLOR
+        context.clearRect(0.0, 0.0, width, height)
         val scale = height/camera.height
-        g.color = OUTER_AREA_COLOR
-        g.fillRect(0, 0, width, height)
-        g.transform = AffineTransform(
-            scale, 0.0,
-            0.0, scale,
-            width/2 - scale*camera.center.x, height/2 - scale*camera.center.y
-        )
-        world.render(g)
+        context.transform(Affine(
+            scale, 0.0, width/2 - scale*camera.center.x,
+            0.0, scale, height/2 - scale*camera.center.y
+        ))
+
+        world.render(context)
+
+        context.restore()
     }
 
-    override fun mouseClicked(e: MouseEvent) {}
 
-    override fun mousePressed(e: MouseEvent) {
-        lastDragPoint = e.point
+    private fun mousePressed(event: MouseEvent) {
+        lastDragPoint = Vector2(event.x, event.y)
     }
 
-    override fun mouseDragged(e: MouseEvent) {
+    private fun mouseDragged(event: MouseEvent) {
         val scale = height/camera.height
         camera.center += Vector2(
-            (lastDragPoint.x - e.x)/scale,
-            (lastDragPoint.y - e.y)/scale
+            (lastDragPoint.x - event.x)/scale,
+            (lastDragPoint.y - event.y)/scale
         )
-        lastDragPoint = e.point
-        repaint()
+        lastDragPoint = Vector2(event.x, event.y)
     }
 
-    override fun mouseWheelMoved(e: MouseWheelEvent) {
-        if (e.preciseWheelRotation > 0)
-            camera.height *= e.preciseWheelRotation + 1
+    private fun scrolled(event: ScrollEvent) {
+        if (event.deltaY < 0)
+            camera.height *= 1 - event.deltaY*SCROLL_SENSITIVITY
         else
-            camera.height *= -1/(e.preciseWheelRotation - 1)
+            camera.height *= 1/(event.deltaY*SCROLL_SENSITIVITY + 1)
         if (camera.height < 1.0)
             camera.height = 1.0
-        repaint()
     }
 
-    override fun mouseReleased(e: MouseEvent) {}
-    override fun mouseEntered(e: MouseEvent) {}
-    override fun mouseExited(e: MouseEvent) {}
-    override fun mouseMoved(e: MouseEvent) {}
+
+    private fun zoomed(event: ZoomEvent) {
+        camera.height *= event.zoomFactor
+        if (camera.height < 1.0)
+            camera.height = 1.0
+    }
 }

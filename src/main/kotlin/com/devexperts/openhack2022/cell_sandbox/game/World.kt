@@ -9,9 +9,8 @@ import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.geom.Rectangle2D
+import javafx.scene.canvas.GraphicsContext
+import javafx.scene.paint.Color
 import java.util.concurrent.atomic.AtomicLong
 
 class World (val settings: WorldSettings) {
@@ -60,16 +59,14 @@ class World (val settings: WorldSettings) {
     }
 
     @Synchronized
-    fun render(graphics: Graphics2D) {
-        Rectangle2D.Double(0.0, 0.0, area.width, area.height).also {
-            graphics.color = Color.BLACK
-            graphics.draw(it)
-            graphics.color = BACKGROUND_COLOR
-            graphics.fill(it)
-        }
+    fun render(context: GraphicsContext) {
+        context.fill = Color.BLACK
+        context.strokeRect(0.0, 0.0, area.width, area.height)
+        context.fill = BACKGROUND_COLOR
+        context.fillRect(0.0, 0.0, area.width, area.height)
 
-        area.food.values.forEach { foodRenderer.render(it, this, graphics) }
-        area.cells.values.forEach { cellRenderer.render(it, this, graphics) }
+        area.food.values.forEach { foodRenderer.render(it, this, context) }
+        area.cells.values.forEach { cellRenderer.render(it, this, context) }
     }
 
     @Synchronized
@@ -79,11 +76,13 @@ class World (val settings: WorldSettings) {
         area.gravity = settings.gravity
         area.viscosity = settings.viscosity
         area.radiation = settings.radiation
+        // TODO this has to be replaced with a parallel and stable implementation in future
         updaters.forEach { it.update(this, oldArea, area, delta) }
+        // TODO this should use the world settings
         add(FoodState(Vector2(Math.random()*area.width, Math.random()*area.height), 12.0))
     }
 
     companion object {
-        val BACKGROUND_COLOR = Color(225, 225, 255)
+        val BACKGROUND_COLOR: Color = Color.rgb(225, 225, 255)
     }
 }
