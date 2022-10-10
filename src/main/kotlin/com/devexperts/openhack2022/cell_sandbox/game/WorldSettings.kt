@@ -7,6 +7,7 @@ data class WorldSettings (
     var viscosity: Double = 0.2,
     var radiation: Double = 0.1,
     var foodSpawnRate: Int = 0,
+    var foodSpawnDelay: Long = 0,
 
     // Not for players
     var debugRender: Boolean = false,

@@ -21,6 +21,7 @@ class World (val settings: WorldSettings) {
     private val updaters = listOf(FoodUpdater(), CellUpdater())
 
     private val idCounter = AtomicLong()
+    private var foodGenerationLastTime = System.currentTimeMillis()
 
     @Volatile
     var area = AreaState(
@@ -80,8 +81,10 @@ class World (val settings: WorldSettings) {
         updaters.forEach { it.update(this, oldArea, area, delta) }
 
         val randomNumber = Math.random() * 100 + 1
-        if (randomNumber <= settings.foodSpawnRate) {
+        val currentTime = System.currentTimeMillis()
+        if (randomNumber <= settings.foodSpawnRate && currentTime - foodGenerationLastTime >= settings.foodSpawnDelay) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), 12.0))
+            foodGenerationLastTime = currentTime
         }
     }
 
