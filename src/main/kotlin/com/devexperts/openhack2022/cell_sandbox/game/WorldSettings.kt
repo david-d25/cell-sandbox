@@ -2,14 +2,14 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 
-class WorldSettings {
-    var gravity = Vector2(0, 0.5)
-    var viscosity = 0.2
-    var radiation = 0.1
-    var foodSpawnRate = 0
+data class WorldSettings (
+    var gravity: Vector2 = Vector2(0, 0.5),
+    var viscosity: Double = 0.2,
+    var radiation: Double = 0.1,
+    var foodSpawnRate: Int = 0,
 
     // Not for players
-    var debugRender = false
-    var maxFoodAbsorbingSpeed = 4.0
-    var minCellMass = 75.0
-}
+    var debugRender: Boolean = false,
+    var maxFoodAbsorbingSpeed: Double = 4.0,
+    var minCellMass: Double = 75.0,
+)

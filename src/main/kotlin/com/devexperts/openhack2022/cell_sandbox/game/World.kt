@@ -78,8 +78,11 @@ class World (val settings: WorldSettings) {
         area.radiation = settings.radiation
         // TODO this has to be replaced with a parallel and stable implementation in future
         updaters.forEach { it.update(this, oldArea, area, delta) }
-        // TODO this should use the world settings
-        add(FoodState(Vector2(Math.random()*area.width, Math.random()*area.height), 12.0))
+
+        val randomNumber = Math.random() * 100 + 1
+        if (randomNumber <= settings.foodSpawnRate) {
+            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), 12.0))
+        }
     }
 
     companion object {

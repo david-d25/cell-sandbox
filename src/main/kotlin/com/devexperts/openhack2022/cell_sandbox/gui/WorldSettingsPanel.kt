@@ -26,6 +26,8 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
         viscositySlider.valueProperty().addListener { _, _, newValue -> settings.viscosity = newValue.toDouble() }
         val radiationSlider = Slider(0.0, 0.9, 0.1)
         radiationSlider.valueProperty().addListener { _, _, newValue -> settings.radiation = newValue.toDouble() }
+        val foodSpawnRateSlider = Slider(0.0, 100.0, 0.0)
+        foodSpawnRateSlider.valueProperty().addListener { _, _, newValue -> settings.foodSpawnRate = newValue.toInt() }
 
         setOf(gravityXSlider, gravityYSlider, viscositySlider, radiationSlider).forEach {
             it.isShowTickLabels = true
@@ -48,7 +50,11 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
             it.textProperty().bind(Bindings.format("%.1f", radiationSlider.valueProperty()))
         }
 
-        setOf(gravityXLabel, gravityYLabel, viscosityLabel, radiationLabel).forEach {
+        val foodSpawnRateLabel = Label("Food Spawn rate").also {
+            it.textProperty().bind(Bindings.format("%.1f", foodSpawnRateSlider.valueProperty()))
+        }
+
+        setOf(gravityXLabel, gravityYLabel, viscosityLabel, radiationLabel, foodSpawnRateLabel).forEach {
             it.font = Font.font(16.0)
             it.minWidth = 32.0
             it.alignment = Pos.TOP_RIGHT
@@ -66,6 +72,7 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
             HBox(Label("Gravity Y"), gravityYSlider, gravityYLabel),
             HBox(Label("Viscosity"), viscositySlider, viscosityLabel),
             HBox(Label("Radiation"), radiationSlider, radiationLabel),
+            HBox(Label("Food spawn rate"), foodSpawnRateSlider, foodSpawnRateLabel),
             Separator(),
             debugRenderCheckbox
         ).forEach {
