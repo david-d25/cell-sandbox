@@ -88,6 +88,40 @@ class World (val settings: WorldSettings) {
         }
     }
 
+    @Synchronized
+    fun resetWorld() {
+        area.cells.clear()
+        area.food.clear()
+        fillWorld()
+    }
+
+    @Synchronized
+    fun fillWorld() {
+        repeat(1) {
+            val genome = Genome(
+                CellType.PHAGOCYTE,
+                Math.random(),
+                Math.random(),
+                Math.random(),
+                0.5,
+                300.0,
+                Math.PI/6, 0.0, 0.0, true, true, true, Pair(null, null)
+            )
+            genome.children = Pair(genome, genome)
+            add(CellState(
+                Vector2(Math.random() * area.width, Math.random() * 50),
+                Vector2(0, 0),
+                220.0,
+                0.0,
+                0.0,
+                genome
+            ))
+        }
+        repeat(1000) {
+            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
+        }
+    }
+
     companion object {
         val BACKGROUND_COLOR: Color = Color.rgb(225, 225, 255)
     }
