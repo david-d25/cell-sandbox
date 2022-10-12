@@ -146,8 +146,7 @@ class CellUpdater: Updater {
                         val childConnections = if (child == child1) child1Connections else child2Connections
 
                         if (narrowRange || broadRange && !bothKeepConnections) { // Connect single
-                            // TODO the angles are computed incorrectly
-                            val partnerConnectionAngle = (toPartner.angle() + Math.PI + partner.angle) % (2*Math.PI)
+                            val partnerConnectionAngle = partner.connections[cell.id]!!.angle
                             val partnerNewConnections = partner.connections
                                 .filterKeys { it != cell.id }
                                 .plus(child.id to CellConnectionState(partnerConnectionAngle, child.id))
@@ -155,8 +154,8 @@ class CellUpdater: Updater {
                             synchronized(partner) {
                                 partner.connections = partnerNewConnections
                             }
-                        } else if (broadRange) { // Connect both with angle shift {
-                            // TODO the angles are computed incorrectly
+                        } else if (broadRange) { // Connect both with angle shift
+//                            // TODO the angles are computed incorrectly
                             val partnerConnectionAngle = (toPartner.angle() + Math.PI - partner.angle + sign(angle) * Math.PI/6) % (2*Math.PI)
                             val partnerNewConnections = partner.connections
                                 .filterKeys { it != cell.id }
