@@ -40,12 +40,12 @@ class CellRenderer: Renderer<CellState> {
             context.arc(
                 center.x, center.y,
                 radius, radius,
-                if (obstacles.isEmpty()) 0.0 else Math.toDegrees(center.to(obstacles.last().second).angle()),
+                if (obstacles.isEmpty()) 0.0 else Math.toDegrees((center to obstacles.last().second).angle()),
                 if (obstacles.isEmpty()) 360.0 else
-                    if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle())
-                        360 - Math.toDegrees(center.to(obstacles.last().second).angle() - center.to(obstacles.first().first).angle())
+                    if ((center to obstacles.last().second).angle() > (center to obstacles.first().first).angle())
+                        360 - Math.toDegrees((center to obstacles.last().second).angle() - (center to obstacles.first().first).angle())
                     else
-                        Math.toDegrees(center.to(obstacles.first().first).angle() - center.to(obstacles.last().second).angle()),
+                        Math.toDegrees((center to obstacles.first().first).angle() - (center to obstacles.last().second).angle()),
             )
 
             obstacles.forEachIndexed { index, obstacle ->
@@ -58,8 +58,8 @@ class CellRenderer: Renderer<CellState> {
                     context.arc(
                         center.x, center.y,
                         radius, radius,
-                        Math.toDegrees(center.to(obstacle.second).angle()),
-                        Math.toDegrees(center.to(next.first).angle() - center.to(obstacle.second).angle())
+                        Math.toDegrees((center to obstacle.second).angle()),
+                        Math.toDegrees((center to next.first).angle() - (center to obstacle.second).angle())
                     )
                 }
             }
@@ -140,8 +140,8 @@ class CellRenderer: Renderer<CellState> {
         val obstacles = mutableListOf<Pair<Vector2, Vector2>>()
 
         fun addObstacle(a: Vector2, b: Vector2) {
-            val angleA = target.center.to(a).angle()
-            val angleB = target.center.to(b).angle()
+            val angleA = (target.center to a).angle()
+            val angleB = (target.center to b).angle()
             val diff = angleB - angleA
             obstacles += if (diff < -PI || diff in 0.0..PI) Pair(a, b) else Pair(b, a)
         }
@@ -163,8 +163,8 @@ class CellRenderer: Renderer<CellState> {
         }
 
         obstacles.sortWith { a, b ->
-            if (target.center.to(a.first).angle() == target.center.to(b.first).angle()) 0 else
-                if (target.center.to(a.first).angle() > target.center.to(b.first).angle()) 1 else -1
+            if ((target.center to a.first).angle() == (target.center to b.first).angle()) 0 else
+                if ((target.center to a.first).angle() > (target.center to b.first).angle()) 1 else -1
         }
 
         obstacles.forEachIndexed { index, obstacle ->
@@ -181,7 +181,7 @@ class CellRenderer: Renderer<CellState> {
         if (obstacles.size > 1) {
             val a = obstacles.first().first
             val b = obstacles.last().first
-            if (target.center.to(b).angle() > target.center.to(a).angle()) {
+            if ((target.center to b).angle() > (target.center to a).angle()) {
                 val intersection = testLinesIntersection(obstacles.last(), obstacles.first())
                 if (intersection != null) {
                     obstacles[0] = obstacles[0].copy(first = intersection)
