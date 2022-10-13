@@ -1,9 +1,11 @@
 package com.devexperts.openhack2022.cell_sandbox.gui
 
+import com.devexperts.openhack2022.cell_sandbox.game.World
 import com.devexperts.openhack2022.cell_sandbox.game.WorldSettings
 import javafx.beans.binding.Bindings
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.Label
 import javafx.scene.control.Separator
@@ -13,7 +15,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.text.Font
 
-class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
+class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBox() {
     init {
         setMargin(this, Insets(10.0))
         setMinSize(250.0, 0.0)
@@ -76,6 +78,12 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
             }
         }
 
+        val resetButton = Button("Reset").also {
+            it.setOnAction {
+                world.resetWorld()
+            }
+        }
+
         setOf(
             HBox(Label("Gravity X"), gravityXSlider, gravityXLabel),
             HBox(Label("Gravity Y"), gravityYSlider, gravityYLabel),
@@ -84,6 +92,7 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
             HBox(Label("Food spawn rate"), foodSpawnRateSlider, foodSpawnRateLabel),
             HBox(Label("Food Spawn delay"), foodSpawnDelaySlider, foodSpawnDelayLabel),
             HBox(Label("Food mass"), foodMassSlider, foodMassLabel),
+            resetButton,
             Separator(),
             debugRenderCheckbox
         ).forEach {
