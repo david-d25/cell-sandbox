@@ -106,8 +106,8 @@ class CellUpdater: Updater {
                 child1Genome.applyRadiation(world, world.area.radiation)
                 child2Genome.applyRadiation(world, world.area.radiation)
 
-                val child1ConnectionAngle = splitNormal - child1Angle + PI / 2
-                val child2ConnectionAngle = splitNormal - child2Angle - PI / 2
+                val child1ConnectionAngle = cell.genome.child1Angle + PI / 2
+                val child2ConnectionAngle = cell.genome.child2Angle - PI / 2
 
                 val child1 = cell.copy(
                     id = world.newId(),
