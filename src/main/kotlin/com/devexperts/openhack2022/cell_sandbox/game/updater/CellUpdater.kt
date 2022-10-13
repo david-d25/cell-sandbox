@@ -9,6 +9,7 @@ import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.projectPointOnLine
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
+import java.lang.Math.PI
 import kotlin.math.*
 
 class CellUpdater: Updater {
@@ -50,10 +51,12 @@ class CellUpdater: Updater {
                         else
                             (oldCell.center + other.center) / 2
 
+                    val depth = (1 - oldCell.center.distance(pivot)/oldCell.radius).coerceIn(0.0, 1.0)
+
                     val massSum = oldCell.mass + other.mass
                     val thisMassCoefficient = oldCell.mass / massSum
                     val oppositeForce = (pivot to oldCell.center).unitSafe() * (oldCell.radius - pivot.distance(oldCell.center))
-                    val hardnessCoefficient = 0.8 + 0.2 * oldCell.genome.hardness
+                    val hardnessCoefficient = (oldCell.genome.hardness*depth + 1).pow(oldCell.genome.hardness + 1)
                     cell.speed += (oppositeForce * hardnessCoefficient + (other.speed * thisMassCoefficient - oldCell.speed * (1 - thisMassCoefficient)) * oldCell.genome.hardness) * delta
                 }
             }
@@ -63,11 +66,14 @@ class CellUpdater: Updater {
                 if (partner != null) {
                     val partnerConnection = partner.connections[cell.id]
                     if (partnerConnection != null) {
-                        val effectiveConnectionAngle = oldCell.angle + connection.angle
-                        val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(effectiveConnectionAngle) * CELL_STICKINESS_DEPTH
-                        val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle) * partner.radius - Vector2.unit(partner.angle + partnerConnection.angle) * CELL_STICKINESS_DEPTH
-                        val connectionForceDirection = (effectiveConnectionForceOrigin to effectiveConnectionForceDestination) * delta
-                        applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
+                        repeat(4) { stringId ->
+                            val angleOffset = stringId* PI /24 - PI /12
+                            val effectiveConnectionAngle = oldCell.angle + connection.angle + angleOffset
+                            val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(effectiveConnectionAngle) * CELL_STICKINESS_DEPTH
+                            val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * partner.radius - Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * CELL_STICKINESS_DEPTH
+                            val connectionForceDirection = (effectiveConnectionForceOrigin to effectiveConnectionForceDestination) / 4 * delta
+                            applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
+                        }
                     }
                 }
             }
@@ -91,8 +97,8 @@ class CellUpdater: Updater {
                 world.remove(cell)
             } else if (cell.mass >= cell.genome.splitMass) {
                 val splitNormal = cell.angle + cell.genome.splitAngle
-                val child1Center = cell.center + Vector2.unit(splitNormal - Math.PI/2)
-                val child2Center = cell.center + Vector2.unit(splitNormal + Math.PI/2)
+                val child1Center = cell.center + Vector2.unit(splitNormal - PI /2)
+                val child2Center = cell.center + Vector2.unit(splitNormal + PI /2)
                 val child1Angle = splitNormal + cell.genome.child1Angle
                 val child2Angle = splitNormal + cell.genome.child2Angle
                 val child1Genome = cell.genome.children.first!!.deepCopy()
@@ -100,8 +106,8 @@ class CellUpdater: Updater {
                 child1Genome.applyRadiation(world, world.area.radiation)
                 child2Genome.applyRadiation(world, world.area.radiation)
 
-                val child1ConnectionAngle = splitNormal - child1Angle + Math.PI / 2
-                val child2ConnectionAngle = splitNormal - child2Angle - Math.PI / 2
+                val child1ConnectionAngle = splitNormal - child1Angle + PI / 2
+                val child2ConnectionAngle = splitNormal - child2Angle - PI / 2
 
                 val child1 = cell.copy(
                     id = world.newId(),
@@ -134,36 +140,38 @@ class CellUpdater: Updater {
                     child2 to cell.genome.child2KeepConnections
                 ).filterValues { it }.map { it.key }.forEach inner@ { child ->
                     existingConnections.forEach { connection ->
+                        val thisIsFirstChild = child == child1
                         val partner = newArea.cells[connection.partnerId] ?: return@inner
-                        val toPartner = cell.center to partner.center
-                        val toChild = cell.center to child.center
-                        val angle = toPartner.angle() - toChild.angle()
+                        val partnerConnection = partner.connections[cell.id] ?: return@inner
 
-                        val narrowRange = abs(angle) < Math.PI/2 - Math.PI/15
-                        val broadRange = abs(angle) < Math.PI/2 + Math.PI/15
+                        val narrowRange = (connection.angle - cell.genome.splitAngle) * (if (thisIsFirstChild) -1 else 1) > PI/30 * if (thisIsFirstChild) -1 else 1
+                        val broadRange = (connection.angle - cell.genome.splitAngle) * (if (thisIsFirstChild) -1 else 1) > PI/15 * if (thisIsFirstChild) -1 else 1
                         val bothKeepConnections = cell.genome.child1KeepConnections && cell.genome.child2KeepConnections
 
-                        val childConnections = if (child == child1) child1Connections else child2Connections
+                        val childConnections = if (thisIsFirstChild) child1Connections else child2Connections
 
                         if (narrowRange || broadRange && !bothKeepConnections) { // Connect single
-                            val partnerConnectionAngle = partner.connections[cell.id]!!.angle
+                            // TODO the angles are computed incorrectly
                             val partnerNewConnections = partner.connections
                                 .filterKeys { it != cell.id }
-                                .plus(child.id to CellConnectionState(partnerConnectionAngle, child.id))
-                            childConnections[partner.id] = CellConnectionState(connection.angle, partner.id)
+                                .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
+                            childConnections[partner.id] = CellConnectionState(
+                                (connection.angle - cell.genome.splitAngle + partnerConnection.angle + if (thisIsFirstChild) cell.genome.child1Angle else cell.genome.child2Angle) % 2*PI, // todo
+                                partner.id
+                            )
                             synchronized(partner) {
                                 partner.connections = partnerNewConnections
                             }
                         } else if (broadRange) { // Connect both with angle shift
 //                            // TODO the angles are computed incorrectly
-                            val partnerConnectionAngle = (toPartner.angle() + Math.PI - partner.angle + sign(angle) * Math.PI/6) % (2*Math.PI)
-                            val partnerNewConnections = partner.connections
-                                .filterKeys { it != cell.id }
-                                .plus(child.id to CellConnectionState(partnerConnectionAngle, child.id))
-                            childConnections[partner.id] = CellConnectionState(connection.angle + sign(angle) * Math.PI/6, partner.id)
-                            synchronized(partner) {
-                                partner.connections = partnerNewConnections
-                            }
+//                            val partnerConnectionAngle = (toPartner.angle() + Math.PI - partner.angle + sign(angle) * Math.PI/6) % (2*Math.PI)
+//                            val partnerNewConnections = partner.connections
+//                                .filterKeys { it != cell.id }
+//                                .plus(child.id to CellConnectionState(partnerConnectionAngle, child.id))
+//                            childConnections[partner.id] = CellConnectionState(connection.angle + sign(angle) * Math.PI/6, partner.id)
+//                            synchronized(partner) {
+//                                partner.connections = partnerNewConnections
+//                            }
                         }
                     }
                 }

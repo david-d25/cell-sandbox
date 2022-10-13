@@ -81,19 +81,14 @@ class CellRenderer: Renderer<CellState> {
             for ((partnerId, connection) in target.connections) {
                 val partner = world.area.cells[partnerId]
                 if (partner != null) {
-                    val effectiveAngle = target.angle + connection.angle
-                    val surfacePoint = getSurfacePointByAngle(target, effectiveAngle, obstacles)
-                    val lineStart = target.center * 0.2 + surfacePoint * 0.8
-                    context.strokeLine(lineStart.x, lineStart.y, surfacePoint.x, surfacePoint.y)
-                    if (target.center.distance(partner.center) >= target.radius + partner.radius) {
-                        val otherConnection = partner.connections[target.id]
-                        if (otherConnection != null) {
-                            val otherSurfacePoint =
-                                partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius
-                            context.strokeLine(
-                                surfacePoint.x, surfacePoint.y, otherSurfacePoint.x, otherSurfacePoint.y
-                            )
-                        }
+                    val lineStart = target.center + Vector2.unit(target.angle + connection.angle) * target.radius * 0.5
+                    val otherConnection = partner.connections[target.id]
+                    if (otherConnection != null) {
+                        val otherSurfacePoint =
+                            partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius * 0.5
+                        context.strokeLine(
+                            lineStart.x, lineStart.y, otherSurfacePoint.x, otherSurfacePoint.y
+                        )
                     }
                 }
             }

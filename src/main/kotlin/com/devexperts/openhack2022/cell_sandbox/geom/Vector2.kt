@@ -30,6 +30,6 @@ data class Vector2 (var x: Double, var y: Double) {
     fun isNaN() = this.x.isNaN() || this.y.isNaN()
 
     companion object {
-        fun unit(angle: Double) = Vector2(cos(angle), -sin(angle))
+        fun unit(angle: Double) = Vector2(cos(angle), sin(angle))
     }
 }

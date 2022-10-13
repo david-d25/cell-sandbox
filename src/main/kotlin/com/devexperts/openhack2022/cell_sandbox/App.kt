@@ -56,7 +56,7 @@ class App: Application() {
                 Math.random(),
                 0.6,
                 300.0,
-                Math.PI/2, 0.0, 0.0, true, true, true, Pair(null, null)
+                Math.PI/8, 0.0, 0.0, true, true, true, Pair(null, null)
             )
             genome.children = Pair(genome, genome)
             world.add(CellState(
