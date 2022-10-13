@@ -106,8 +106,8 @@ class CellUpdater: Updater {
                 child1Genome.applyRadiation(world, world.area.radiation)
                 child2Genome.applyRadiation(world, world.area.radiation)
 
-                val child1ConnectionAngle = cell.genome.child1Angle + PI / 2
-                val child2ConnectionAngle = cell.genome.child2Angle - PI / 2
+                val child1ConnectionAngle = -cell.genome.child1Angle + PI / 2
+                val child2ConnectionAngle = -cell.genome.child2Angle - PI / 2
 
                 val child1 = cell.copy(
                     id = world.newId(),
@@ -152,16 +152,16 @@ class CellUpdater: Updater {
 
                         if (narrowRange || broadRange && !bothKeepConnections) { // Connect single
                             // TODO the angles are computed incorrectly
-                            val partnerNewConnections = partner.connections
-                                .filterKeys { it != cell.id }
-                                .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
-                            childConnections[partner.id] = CellConnectionState(
-                                (connection.angle - cell.genome.splitAngle + partnerConnection.angle + if (thisIsFirstChild) cell.genome.child1Angle else cell.genome.child2Angle) % 2*PI, // todo
-                                partner.id
-                            )
-                            synchronized(partner) {
-                                partner.connections = partnerNewConnections
-                            }
+//                            val partnerNewConnections = partner.connections
+//                                .filterKeys { it != cell.id }
+//                                .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
+//                            childConnections[partner.id] = CellConnectionState(
+//                                (connection.angle - cell.genome.splitAngle + partnerConnection.angle + if (thisIsFirstChild) cell.genome.child1Angle else cell.genome.child2Angle) % 2*PI, // todo
+//                                partner.id
+//                            )
+//                            synchronized(partner) {
+//                                partner.connections = partnerNewConnections
+//                            }
                         } else if (broadRange) { // Connect both with angle shift
 //                            // TODO the angles are computed incorrectly
 //                            val partnerConnectionAngle = (toPartner.angle() + Math.PI - partner.angle + sign(angle) * Math.PI/6) % (2*Math.PI)
