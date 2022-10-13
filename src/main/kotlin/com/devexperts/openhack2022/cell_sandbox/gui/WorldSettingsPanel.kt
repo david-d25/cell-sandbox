@@ -18,13 +18,13 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
         setMargin(this, Insets(10.0))
         setMinSize(250.0, 0.0)
 
-        val gravityXSlider = Slider(-2.0, 2.0, 0.0)
+        val gravityXSlider = Slider(-2.0, 2.0, settings.gravity.x)
+        val gravityYSlider = Slider(-2.0, 2.0, settings.gravity.y)
+        val viscositySlider = Slider(0.0, 0.9, settings.viscosity)
+        val radiationSlider = Slider(0.0, 0.9, settings.radiation)
         gravityXSlider.valueProperty().addListener { _, _, newValue -> settings.gravity.x = newValue.toDouble() }
-        val gravityYSlider = Slider(-2.0, 2.0, 0.0)
         gravityYSlider.valueProperty().addListener { _, _, newValue -> settings.gravity.y = newValue.toDouble() }
-        val viscositySlider = Slider(0.0, 0.9, 0.1)
         viscositySlider.valueProperty().addListener { _, _, newValue -> settings.viscosity = newValue.toDouble() }
-        val radiationSlider = Slider(0.0, 0.9, 0.1)
         radiationSlider.valueProperty().addListener { _, _, newValue -> settings.radiation = newValue.toDouble() }
 
         setOf(gravityXSlider, gravityYSlider, viscositySlider, radiationSlider).forEach {
