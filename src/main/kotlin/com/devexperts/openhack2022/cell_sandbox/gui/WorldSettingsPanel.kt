@@ -1,9 +1,11 @@
 package com.devexperts.openhack2022.cell_sandbox.gui
 
+import com.devexperts.openhack2022.cell_sandbox.game.World
 import com.devexperts.openhack2022.cell_sandbox.game.WorldSettings
 import javafx.beans.binding.Bindings
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.control.Button
 import javafx.scene.control.CheckBox
 import javafx.scene.control.Label
 import javafx.scene.control.Separator
@@ -13,7 +15,7 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.text.Font
 
-class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
+class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBox() {
     init {
         setMargin(this, Insets(10.0))
         setMinSize(250.0, 0.0)
@@ -26,6 +28,12 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
         gravityYSlider.valueProperty().addListener { _, _, newValue -> settings.gravity.y = newValue.toDouble() }
         viscositySlider.valueProperty().addListener { _, _, newValue -> settings.viscosity = newValue.toDouble() }
         radiationSlider.valueProperty().addListener { _, _, newValue -> settings.radiation = newValue.toDouble() }
+        val foodSpawnRateSlider = Slider(0.0, 100.0, 100.0)
+        foodSpawnRateSlider.valueProperty().addListener { _, _, newValue -> settings.foodSpawnRate = newValue.toInt() }
+        val foodSpawnDelaySlider = Slider(0.0, 10.0, 0.0)
+        foodSpawnDelaySlider.valueProperty().addListener { _, _, newValue -> settings.foodSpawnDelay = (newValue.toDouble() * 1000).toLong() }
+        val foodMassSlider = Slider(0.1, 50.0, 12.0)
+        foodMassSlider.valueProperty().addListener { _, _, newValue -> settings.foodMass = newValue.toDouble() }
 
         setOf(gravityXSlider, gravityYSlider, viscositySlider, radiationSlider).forEach {
             it.isShowTickLabels = true
@@ -47,8 +55,17 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
         val radiationLabel = Label("Radiation").also {
             it.textProperty().bind(Bindings.format("%.1f", radiationSlider.valueProperty()))
         }
+        val foodSpawnRateLabel = Label("Food Spawn rate").also {
+            it.textProperty().bind(Bindings.format("%.1f", foodSpawnRateSlider.valueProperty()))
+        }
+        val foodSpawnDelayLabel = Label("Food Spawn delay").also {
+            it.textProperty().bind(Bindings.format("%.1f", foodSpawnDelaySlider.valueProperty()))
+        }
+        val foodMassLabel = Label("Food Spawn delay").also {
+            it.textProperty().bind(Bindings.format("%.1f", foodMassSlider.valueProperty()))
+        }
 
-        setOf(gravityXLabel, gravityYLabel, viscosityLabel, radiationLabel).forEach {
+        setOf(gravityXLabel, gravityYLabel, viscosityLabel, radiationLabel, foodSpawnRateLabel, foodMassLabel).forEach {
             it.font = Font.font(16.0)
             it.minWidth = 32.0
             it.alignment = Pos.TOP_RIGHT
@@ -61,11 +78,21 @@ class WorldSettingsPanel(private val settings: WorldSettings): VBox() {
             }
         }
 
+        val resetButton = Button("Reset").also {
+            it.setOnAction {
+                world.resetWorld()
+            }
+        }
+
         setOf(
             HBox(Label("Gravity X"), gravityXSlider, gravityXLabel),
             HBox(Label("Gravity Y"), gravityYSlider, gravityYLabel),
             HBox(Label("Viscosity"), viscositySlider, viscosityLabel),
             HBox(Label("Radiation"), radiationSlider, radiationLabel),
+            HBox(Label("Food spawn rate"), foodSpawnRateSlider, foodSpawnRateLabel),
+            HBox(Label("Food Spawn delay"), foodSpawnDelaySlider, foodSpawnDelayLabel),
+            HBox(Label("Food mass"), foodMassSlider, foodMassLabel),
+            resetButton,
             Separator(),
             debugRenderCheckbox
         ).forEach {

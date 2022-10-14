@@ -21,6 +21,7 @@ class World (val settings: WorldSettings) {
     private val updaters = listOf(FoodUpdater(), CellUpdater())
 
     private val idCounter = AtomicLong()
+    private var foodGenerationLastTime = System.currentTimeMillis()
 
     @Volatile
     var area = AreaState(
@@ -78,8 +79,47 @@ class World (val settings: WorldSettings) {
         area.radiation = settings.radiation
         // TODO this has to be replaced with a parallel and stable implementation in future
         updaters.forEach { it.update(this, oldArea, area, delta) }
-        // TODO this should use the world settings
-        add(FoodState(Vector2(Math.random()*area.width, Math.random()*area.height), 12.0))
+
+        val randomNumber = Math.random() * 100 + 1
+        val currentTime = System.currentTimeMillis()
+        if (randomNumber <= settings.foodSpawnRate && currentTime - foodGenerationLastTime >= settings.foodSpawnDelay) {
+            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
+            foodGenerationLastTime = currentTime
+        }
+    }
+
+    @Synchronized
+    fun resetWorld() {
+        area.cells.clear()
+        area.food.clear()
+        fillWorld()
+    }
+
+    @Synchronized
+    fun fillWorld() {
+        repeat(1) {
+            val genome = Genome(
+                CellType.PHAGOCYTE,
+                Math.random(),
+                Math.random(),
+                Math.random(),
+                0.5,
+                300.0,
+                Math.PI/6, 0.0, 0.0, true, true, true, Pair(null, null)
+            )
+            genome.children = Pair(genome, genome)
+            add(CellState(
+                Vector2(Math.random() * area.width, Math.random() * 50),
+                Vector2(0, 0),
+                220.0,
+                0.0,
+                0.0,
+                genome
+            ))
+        }
+        repeat(1000) {
+            add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
+        }
     }
 
     companion object {

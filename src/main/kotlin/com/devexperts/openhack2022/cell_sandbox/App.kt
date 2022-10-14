@@ -31,7 +31,7 @@ class App: Application() {
         val worldView = WorldView(world, camera)
 
         val asidePanel = TabPane()
-        val worldSettingsPanel = WorldSettingsPanel(worldSettings)
+        val worldSettingsPanel = WorldSettingsPanel(worldSettings, world)
         val genomeEditingPanel = GenomeEditingPanel()
 
         val worldSettingsTab = Tab("World", worldSettingsPanel)
@@ -47,31 +47,7 @@ class App: Application() {
 
         HBox.setHgrow(worldView, Priority.ALWAYS)
 
-        // -------
-        repeat(1) {
-            val genome = Genome(
-                CellType.PHAGOCYTE,
-                Math.random(),
-                Math.random(),
-                Math.random(),
-                0.6,
-                300.0,
-                12.0, 0.0, 0.0, true, true, true, Pair(null, null)
-            )
-            genome.children = Pair(genome, genome)
-            world.add(CellState(
-                Vector2(Math.random()*world.area.width, Math.random()*50),
-                Vector2(0, 0),
-                220.0,
-                0.0,
-                0.0,
-                genome
-            ))
-        }
-        repeat(1000) {
-            world.add(FoodState(Vector2(Math.random()*world.area.width, Math.random()*world.area.height), 12.0))
-        }
-        // -------
+        world.fillWorld()
 
         Thread {
             // TODO make fixed-delta system
