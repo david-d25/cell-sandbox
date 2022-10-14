@@ -56,7 +56,7 @@ class App: Application() {
                 Math.random(),
                 0.6,
                 300.0,
-                Math.PI/8, 0.0, 0.0, true, true, true, Pair(null, null)
+                12.0, 0.0, 0.0, true, true, true, Pair(null, null)
             )
             genome.children = Pair(genome, genome)
             world.add(CellState(
@@ -80,7 +80,7 @@ class App: Application() {
                 val newTime = System.currentTimeMillis()
                 var delta = (newTime - oldTime).toDouble()/1000
                 if (delta > 0.05) delta = 0.05
-                world.update(delta * 1)
+                world.update(delta * 5)
                 oldTime = newTime
                 Thread.sleep(1000/60)
             }
