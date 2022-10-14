@@ -125,8 +125,8 @@ class CellRenderer: Renderer<CellState> {
         // Split line
         context.stroke = Color.MAGENTA
         context.setLineDashes(1.0, 1.0)
-        val splitLinePoint1 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
-        val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle + Math.PI) * target.radius
+        val splitLinePoint1 = target.center
+        val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
         context.strokeLine(splitLinePoint1.x, splitLinePoint1.y, splitLinePoint2.x, splitLinePoint2.y)
         context.restore()
     }

@@ -149,19 +149,17 @@ class CellUpdater: Updater {
                         val bothKeepConnections = cell.genome.child1KeepConnections && cell.genome.child2KeepConnections
 
                         val childConnections = if (thisIsFirstChild) child1Connections else child2Connections
+                        val childAngle = if (thisIsFirstChild) cell.genome.child1Angle else cell.genome.child2Angle
 
                         if (narrowRange || broadRange && !bothKeepConnections) { // Connect single
-                            // TODO the angles are computed incorrectly
-//                            val partnerNewConnections = partner.connections
-//                                .filterKeys { it != cell.id }
-//                                .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
-//                            childConnections[partner.id] = CellConnectionState(
-//                                (connection.angle - cell.genome.splitAngle + partnerConnection.angle + if (thisIsFirstChild) cell.genome.child1Angle else cell.genome.child2Angle) % 2*PI, // todo
-//                                partner.id
-//                            )
-//                            synchronized(partner) {
-//                                partner.connections = partnerNewConnections
-//                            }
+                            val partnerNewConnections = partner.connections
+                                .filterKeys { it != cell.id }
+                                .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
+                            childConnections[partner.id] = CellConnectionState(
+                                (connection.angle - childAngle - cell.genome.splitAngle + 2*PI) % 2*PI,
+                                partner.id
+                            )
+                            partner.connections = partnerNewConnections
                         } else if (broadRange) { // Connect both with angle shift
 //                            // TODO the angles are computed incorrectly
 //                            val partnerConnectionAngle = (toPartner.angle() + Math.PI - partner.angle + sign(angle) * Math.PI/6) % (2*Math.PI)
