@@ -178,8 +178,11 @@ class CellUpdater: Updater {
                     partner.connections = partnerNewConnections
                 } else if (broadRange) { // Connect both with angle shift
                     var childShift = PI/6
-                    if (!thisIsFirstChild) childShift *= -1
-                    if (abs(cell.genome.splitAngle - connection.angle) > PI/15) childShift *= -1
+                    if (!thisIsFirstChild)
+                        childShift *= -1
+                    if (abs(cell.genome.splitAngle - connection.angle) > PI/15)
+                        childShift *= -1
+
                     val partnerNewConnections = partner.connections
                         .plus(child.id to CellConnectionState(
                             partnerConnection.angle + childShift,
