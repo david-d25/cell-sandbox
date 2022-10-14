@@ -9,6 +9,7 @@ data class WorldSettings (
     var foodSpawnRate: Int = 100,
     var foodSpawnDelay: Long = 0,
     var foodMass: Double = 12.0,
+    var initialFoodAmount: Int = 1000,
 
     // Not for players
     var debugRender: Boolean = false,

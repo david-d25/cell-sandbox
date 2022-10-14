@@ -34,6 +34,8 @@ class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBo
         foodSpawnDelaySlider.valueProperty().addListener { _, _, newValue -> settings.foodSpawnDelay = (newValue.toDouble() * 1000).toLong() }
         val foodMassSlider = Slider(0.1, 50.0, 12.0)
         foodMassSlider.valueProperty().addListener { _, _, newValue -> settings.foodMass = newValue.toDouble() }
+        val initialFoodAmountSlider = Slider(500.0, 1500.0, 1000.0)
+        initialFoodAmountSlider.valueProperty().addListener { _, newValue, _,  -> settings.initialFoodAmount = newValue.toInt() }
 
         setOf(gravityXSlider, gravityYSlider, viscositySlider, radiationSlider).forEach {
             it.isShowTickLabels = true
@@ -64,6 +66,9 @@ class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBo
         val foodMassLabel = Label("Food Spawn delay").also {
             it.textProperty().bind(Bindings.format("%.1f", foodMassSlider.valueProperty()))
         }
+        val initialFoodAmountLabel = Label("Initial food amount").also {
+            it.textProperty().bind(Bindings.format("%.1f", initialFoodAmountSlider.valueProperty()))
+        }
 
         setOf(gravityXLabel, gravityYLabel, viscosityLabel, radiationLabel, foodSpawnRateLabel, foodMassLabel).forEach {
             it.font = Font.font(16.0)
@@ -92,6 +97,7 @@ class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBo
             HBox(Label("Food spawn rate"), foodSpawnRateSlider, foodSpawnRateLabel),
             HBox(Label("Food Spawn delay"), foodSpawnDelaySlider, foodSpawnDelayLabel),
             HBox(Label("Food mass"), foodMassSlider, foodMassLabel),
+            HBox(Label("Initial food amount"), initialFoodAmountSlider, initialFoodAmountLabel),
             resetButton,
             Separator(),
             debugRenderCheckbox
