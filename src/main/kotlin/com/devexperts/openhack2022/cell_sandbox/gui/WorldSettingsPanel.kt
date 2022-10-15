@@ -84,6 +84,18 @@ class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBo
             }
         }
 
+        val pauseButton = Button("Pause").also { button ->
+            button.setOnAction {
+                button.text = if (settings.isWorldPaused) {
+                    settings.isWorldPaused = false
+                    "Pause"
+                } else {
+                    settings.isWorldPaused = true
+                    "Resume"
+                }
+            }
+        }
+
         setOf(
             HBox(Label("Gravity X"), gravityXSlider, gravityXLabel),
             HBox(Label("Gravity Y"), gravityYSlider, gravityYLabel),
@@ -93,6 +105,7 @@ class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBo
             HBox(Label("Food Spawn delay"), foodSpawnDelaySlider, foodSpawnDelayLabel),
             HBox(Label("Food mass"), foodMassSlider, foodMassLabel),
             resetButton,
+            pauseButton,
             Separator(),
             debugRenderCheckbox
         ).forEach {

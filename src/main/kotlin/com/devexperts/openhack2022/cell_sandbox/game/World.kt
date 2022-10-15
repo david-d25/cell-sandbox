@@ -72,6 +72,9 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun update(delta: Double) {
+        // do not render if the game is paused
+        if (settings.isWorldPaused) return
+
         val oldArea = area
         area = area.deepCopy()
         area.gravity = settings.gravity
