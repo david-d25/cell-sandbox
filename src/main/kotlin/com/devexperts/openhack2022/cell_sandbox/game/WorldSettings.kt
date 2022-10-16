@@ -10,6 +10,7 @@ data class WorldSettings (
     var foodSpawnDelay: Long = 0,
     var foodMass: Double = 12.0,
     var isWorldPaused: Boolean = false,
+    var initialFoodDensity: Int = 1000,
 
     // Not for players
     var debugRender: Boolean = false,
