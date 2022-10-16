@@ -117,7 +117,7 @@ class World (val settings: WorldSettings) {
                 genome
             ))
         }
-        repeat(settings.initialFoodAmount) {
+        repeat(settings.initialFoodDensity) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
         }
     }
