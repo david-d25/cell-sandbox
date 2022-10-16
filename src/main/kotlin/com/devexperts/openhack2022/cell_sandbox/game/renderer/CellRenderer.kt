@@ -40,12 +40,12 @@ class CellRenderer: Renderer<CellState> {
             context.arc(
                 center.x, center.y,
                 radius, radius,
-                if (obstacles.isEmpty()) 0.0 else Math.toDegrees(center.to(obstacles.last().second).angle()),
+                if (obstacles.isEmpty()) 0.0 else Math.toDegrees((center to obstacles.last().second).angle()),
                 if (obstacles.isEmpty()) 360.0 else
-                    if (center.to(obstacles.last().second).angle() > center.to(obstacles.first().first).angle())
-                        360 - Math.toDegrees(center.to(obstacles.last().second).angle() - center.to(obstacles.first().first).angle())
+                    if ((center to obstacles.last().second).angle() > (center to obstacles.first().first).angle())
+                        360 - Math.toDegrees((center to obstacles.last().second).angle() - (center to obstacles.first().first).angle())
                     else
-                        Math.toDegrees(center.to(obstacles.first().first).angle() - center.to(obstacles.last().second).angle()),
+                        Math.toDegrees((center to obstacles.first().first).angle() - (center to obstacles.last().second).angle()),
             )
 
             obstacles.forEachIndexed { index, obstacle ->
@@ -58,8 +58,8 @@ class CellRenderer: Renderer<CellState> {
                     context.arc(
                         center.x, center.y,
                         radius, radius,
-                        Math.toDegrees(center.to(obstacle.second).angle()),
-                        Math.toDegrees(center.to(next.first).angle() - center.to(obstacle.second).angle())
+                        Math.toDegrees((center to obstacle.second).angle()),
+                        Math.toDegrees((center to next.first).angle() - (center to obstacle.second).angle())
                     )
                 }
             }
@@ -81,19 +81,14 @@ class CellRenderer: Renderer<CellState> {
             for ((partnerId, connection) in target.connections) {
                 val partner = world.area.cells[partnerId]
                 if (partner != null) {
-                    val effectiveAngle = target.angle + connection.angle
-                    val surfacePoint = getSurfacePointByAngle(target, effectiveAngle, obstacles)
-                    val lineStart = target.center * 0.2 + surfacePoint * 0.8
-                    context.strokeLine(lineStart.x, lineStart.y, surfacePoint.x, surfacePoint.y)
-                    if (target.center.distance(partner.center) >= target.radius + partner.radius) {
-                        val otherConnection = partner.connections[target.id]
-                        if (otherConnection != null) {
-                            val otherSurfacePoint =
-                                partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius
-                            context.strokeLine(
-                                surfacePoint.x, surfacePoint.y, otherSurfacePoint.x, otherSurfacePoint.y
-                            )
-                        }
+                    val lineStart = target.center + Vector2.unit(target.angle + connection.angle) * target.radius * 0.5
+                    val otherConnection = partner.connections[target.id]
+                    if (otherConnection != null) {
+                        val otherSurfacePoint =
+                            partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius * 0.5
+                        context.strokeLine(
+                            lineStart.x, lineStart.y, otherSurfacePoint.x, otherSurfacePoint.y
+                        )
                     }
                 }
             }
@@ -130,8 +125,8 @@ class CellRenderer: Renderer<CellState> {
         // Split line
         context.stroke = Color.MAGENTA
         context.setLineDashes(1.0, 1.0)
-        val splitLinePoint1 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
-        val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle + Math.PI) * target.radius
+        val splitLinePoint1 = target.center
+        val splitLinePoint2 = target.center + Vector2(1, 0).rotate(target.angle + target.genome.splitAngle) * target.radius
         context.strokeLine(splitLinePoint1.x, splitLinePoint1.y, splitLinePoint2.x, splitLinePoint2.y)
         context.restore()
     }
@@ -140,8 +135,8 @@ class CellRenderer: Renderer<CellState> {
         val obstacles = mutableListOf<Pair<Vector2, Vector2>>()
 
         fun addObstacle(a: Vector2, b: Vector2) {
-            val angleA = target.center.to(a).angle()
-            val angleB = target.center.to(b).angle()
+            val angleA = (target.center to a).angle()
+            val angleB = (target.center to b).angle()
             val diff = angleB - angleA
             obstacles += if (diff < -PI || diff in 0.0..PI) Pair(a, b) else Pair(b, a)
         }
@@ -163,8 +158,8 @@ class CellRenderer: Renderer<CellState> {
         }
 
         obstacles.sortWith { a, b ->
-            if (target.center.to(a.first).angle() == target.center.to(b.first).angle()) 0 else
-                if (target.center.to(a.first).angle() > target.center.to(b.first).angle()) 1 else -1
+            if ((target.center to a.first).angle() == (target.center to b.first).angle()) 0 else
+                if ((target.center to a.first).angle() > (target.center to b.first).angle()) 1 else -1
         }
 
         obstacles.forEachIndexed { index, obstacle ->
@@ -181,7 +176,7 @@ class CellRenderer: Renderer<CellState> {
         if (obstacles.size > 1) {
             val a = obstacles.first().first
             val b = obstacles.last().first
-            if (target.center.to(b).angle() > target.center.to(a).angle()) {
+            if ((target.center to b).angle() > (target.center to a).angle()) {
                 val intersection = testLinesIntersection(obstacles.last(), obstacles.first())
                 if (intersection != null) {
                     obstacles[0] = obstacles[0].copy(first = intersection)
