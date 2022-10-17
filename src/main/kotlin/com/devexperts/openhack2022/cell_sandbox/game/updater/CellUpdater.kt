@@ -1,10 +1,6 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
-import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellConnectionState
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
+import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.projectPointOnLine
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection

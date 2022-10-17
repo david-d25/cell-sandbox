@@ -1,7 +1,7 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
+import com.devexperts.openhack2022.cell_sandbox.game.AreaState
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
 import kotlin.math.min
 
 class FoodUpdater: Updater {

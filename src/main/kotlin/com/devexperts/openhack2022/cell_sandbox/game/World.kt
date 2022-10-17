@@ -2,10 +2,6 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.FoodRenderer
-import com.devexperts.openhack2022.cell_sandbox.game.state.AreaState
-import com.devexperts.openhack2022.cell_sandbox.game.state.BorderState
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
@@ -111,14 +107,16 @@ class World (val settings: WorldSettings) {
                 Math.PI/6, 0.0, 0.0, true, true, true, Pair(null, null)
             )
             genome.children = Pair(genome, genome)
-            add(CellState(
+            add(
+                CellState(
                 Vector2(Math.random() * area.width, Math.random() * 50),
                 Vector2(0, 0),
                 220.0,
                 0.0,
                 0.0,
                 genome
-            ))
+            )
+            )
         }
         repeat(settings.initialFoodDensity) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))

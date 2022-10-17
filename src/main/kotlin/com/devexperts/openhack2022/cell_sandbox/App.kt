@@ -1,8 +1,6 @@
 package com.devexperts.openhack2022.cell_sandbox
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.gui.GenomeEditingPanel
 import com.devexperts.openhack2022.cell_sandbox.gui.WorldSettingsPanel

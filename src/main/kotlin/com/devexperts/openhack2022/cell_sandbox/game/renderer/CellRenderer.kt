@@ -1,7 +1,7 @@
 package com.devexperts.openhack2022.cell_sandbox.game.renderer
 
+import com.devexperts.openhack2022.cell_sandbox.game.CellState
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
