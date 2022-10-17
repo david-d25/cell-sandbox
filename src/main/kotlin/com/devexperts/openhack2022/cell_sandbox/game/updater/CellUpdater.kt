@@ -8,7 +8,7 @@ import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersecti
 import java.lang.Math.PI
 import kotlin.math.*
 
-class CellUpdater: Updater {
+class CellUpdater : Updater {
 
     companion object {
         const val CELL_STICKINESS_DEPTH = 3
@@ -23,56 +23,15 @@ class CellUpdater: Updater {
             cell.speed += world.area.gravity * delta
 
             for (border in oldArea.borders.values) {
-                val intersections = testLineAndCircleIntersection(oldCell.center, oldCell.radius, border.a, border.b)
-                if (intersections.isNotEmpty()) {
-                    val projection = projectPointOnLine(oldCell.center, Pair(border.a, border.b))
-                    val oppositeForce =
-                        (projection to oldCell.center).unit() * (oldCell.radius - projection.distance(oldCell.center))
-                    val depth = (1 - oldCell.center.distance(projection)/oldCell.radius).coerceIn(0.0, 1.0)
-                    val hardnessCoefficient = (oldCell.genome.hardness*depth + 1).pow(oldCell.genome.hardness + 1)
-                    cell.speed += oppositeForce * hardnessCoefficient * delta
-                }
+                clashCellWithBorders(oldCell, border, cell, delta)
             }
 
             for (other in oldArea.cells.values) {
-                if (other.id == cell.id) continue
-                if (cell.center.distance(other.center) <= cell.radius + other.radius) {
-                    val intersections = testCirclesIntersection(
-                        oldCell.center, oldCell.radius,
-                        other.center, other.radius
-                    )
-
-                    val pivot =
-                        if (intersections.isNotEmpty())
-                            (intersections.first() + intersections.last()) / 2
-                        else
-                            (oldCell.center + other.center) / 2
-
-                    val depth = (1 - oldCell.center.distance(pivot)/oldCell.radius).coerceIn(0.0, 1.0)
-
-                    val massSum = oldCell.mass + other.mass
-                    val thisMassCoefficient = oldCell.mass / massSum
-                    val oppositeForce = (pivot to oldCell.center).unitSafe() * (oldCell.radius - pivot.distance(oldCell.center))
-                    val hardnessCoefficient = (oldCell.genome.hardness*depth + 1).pow(oldCell.genome.hardness + 1)
-                    cell.speed += (oppositeForce * hardnessCoefficient + (other.speed * thisMassCoefficient - oldCell.speed * (1 - thisMassCoefficient)) * oldCell.genome.hardness) * delta
-                }
+                clashCells(other, cell, oldCell, delta)
             }
 
             for (connection in oldCell.connections.values) {
-                val partner = oldArea.cells[connection.partnerId]
-                if (partner != null) {
-                    val partnerConnection = partner.connections[cell.id]
-                    if (partnerConnection != null) {
-                        repeat(4) { stringId ->
-                            val angleOffset = stringId* PI /24 - PI /12
-                            val effectiveConnectionAngle = oldCell.angle + connection.angle + angleOffset
-                            val effectiveConnectionForceOrigin = oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(effectiveConnectionAngle) * CELL_STICKINESS_DEPTH
-                            val effectiveConnectionForceDestination = partner.center + Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * partner.radius - Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * CELL_STICKINESS_DEPTH
-                            val connectionForceDirection = (effectiveConnectionForceOrigin to effectiveConnectionForceDestination) / 4 * delta
-                            applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
-                        }
-                    }
-                }
+                moveCell(oldArea, connection, cell, oldCell, delta)
             }
 
             cell.center += cell.speed * delta
@@ -82,16 +41,12 @@ class CellUpdater: Updater {
             cell.angularSpeed -= cell.angularSpeed * world.area.viscosity * delta
 
             oldArea.food.values.forEach {
-                if (oldCell.center.distance(it.center) < oldCell.radius + it.radius) {
-                    val massToEat = min(it.mass, world.settings.maxFoodAbsorbingSpeed * delta)
-                    cell.mass += massToEat
-                }
+                eatFoodByCell(oldCell, it, world, delta, cell)
             }
 
             cell.mass -= calculateLiveCost(cell) * delta
             if (cell.mass < world.settings.minCellMass) {
-                world.add(FoodState(cell.center, sqrt(cell.mass)))
-                world.remove(cell)
+                processCellDeath(world, cell)
             } else if (cell.mass >= cell.genome.splitMass) {
                 split(world, cell, newArea)
             } else {
@@ -104,10 +59,110 @@ class CellUpdater: Updater {
         }
     }
 
+    private fun eatFoodByCell(
+        oldCell: CellState,
+        it: FoodState,
+        world: World,
+        delta: Double,
+        cell: CellState
+    ) {
+        if (oldCell.center.distance(it.center) < oldCell.radius + it.radius) {
+            val massToEat = min(it.mass, world.settings.maxFoodAbsorbingSpeed * delta)
+            cell.mass += massToEat
+        }
+    }
+
+    private fun moveCell(
+        oldArea: AreaState,
+        connection: CellConnectionState,
+        cell: CellState,
+        oldCell: CellState,
+        delta: Double
+    ) {
+        val partner = oldArea.cells[connection.partnerId]
+        if (partner != null) {
+            val partnerConnection = partner.connections[cell.id]
+            if (partnerConnection != null) {
+                // TODO why exactly 4 times?
+                repeat(4) { stringId ->
+                    val angleOffset = stringId * PI / 24 - PI / 12
+                    val effectiveConnectionAngle = oldCell.angle + connection.angle + angleOffset
+                    val effectiveConnectionForceOrigin =
+                        oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(
+                            effectiveConnectionAngle
+                        ) * CELL_STICKINESS_DEPTH
+                    val effectiveConnectionForceDestination =
+                        partner.center + Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * partner.radius - Vector2.unit(
+                            partner.angle + partnerConnection.angle - angleOffset
+                        ) * CELL_STICKINESS_DEPTH
+                    val connectionForceDirection =
+                        (effectiveConnectionForceOrigin to effectiveConnectionForceDestination) / 4 * delta
+                    applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
+                }
+            }
+        }
+    }
+
+    private fun clashCellWithBorders(
+        oldCell: CellState,
+        border: BorderState,
+        cell: CellState,
+        delta: Double
+    ) {
+        val intersections = testLineAndCircleIntersection(oldCell.center, oldCell.radius, border.a, border.b)
+        if (intersections.isNotEmpty()) {
+            val projection = projectPointOnLine(oldCell.center, Pair(border.a, border.b))
+            val oppositeForce =
+                (projection to oldCell.center).unit() * (oldCell.radius - projection.distance(oldCell.center))
+            val depth = (1 - oldCell.center.distance(projection) / oldCell.radius).coerceIn(0.0, 1.0)
+            val hardnessCoefficient = (oldCell.genome.hardness * depth + 1).pow(oldCell.genome.hardness + 1)
+            cell.speed += oppositeForce * hardnessCoefficient * delta
+        }
+    }
+
+    private fun clashCells(
+        other: CellState,
+        cell: CellState,
+        oldCell: CellState,
+        delta: Double
+    ) {
+        if (other.id == cell.id) {
+            return
+        }
+        if (cell.center.distance(other.center) <= cell.radius + other.radius) {
+            val intersections = testCirclesIntersection(
+                oldCell.center, oldCell.radius,
+                other.center, other.radius
+            )
+
+            val pivot =
+                if (intersections.isNotEmpty())
+                    (intersections.first() + intersections.last()) / 2
+                else
+                    (oldCell.center + other.center) / 2
+
+            val depth = (1 - oldCell.center.distance(pivot) / oldCell.radius).coerceIn(0.0, 1.0)
+
+            val massSum = oldCell.mass + other.mass
+            val thisMassCoefficient = oldCell.mass / massSum
+            val oppositeForce = (pivot to oldCell.center).unitSafe() * (oldCell.radius - pivot.distance(oldCell.center))
+            val hardnessCoefficient = (oldCell.genome.hardness * depth + 1).pow(oldCell.genome.hardness + 1)
+            cell.speed += (oppositeForce * hardnessCoefficient + (other.speed * thisMassCoefficient - oldCell.speed * (1 - thisMassCoefficient)) * oldCell.genome.hardness) * delta
+        }
+    }
+
+    private fun processCellDeath(
+        world: World,
+        cell: CellState
+    ) {
+        world.add(FoodState(cell.center, sqrt(cell.mass)))
+        world.remove(cell)
+    }
+
     private fun split(world: World, cell: CellState, newArea: AreaState) {
         val splitNormal = cell.angle + cell.genome.splitAngle
-        val child1Center = cell.center + Vector2.unit(splitNormal - PI /2)
-        val child2Center = cell.center + Vector2.unit(splitNormal + PI /2)
+        val child1Center = cell.center + Vector2.unit(splitNormal - PI / 2)
+        val child2Center = cell.center + Vector2.unit(splitNormal + PI / 2)
         val child1Angle = splitNormal + cell.genome.child1Angle
         val child2Angle = splitNormal + cell.genome.child2Angle
         val child1Genome = cell.genome.children.first!!.deepCopy()
@@ -123,7 +178,7 @@ class CellUpdater: Updater {
             center = child1Center,
             speed = cell.speed,
             angle = child1Angle,
-            mass = cell.mass/2,
+            mass = cell.mass / 2,
             genome = child1Genome,
         )
         val child2 = cell.copy(
@@ -131,7 +186,7 @@ class CellUpdater: Updater {
             center = child2Center,
             speed = cell.speed,
             angle = child2Angle,
-            mass = cell.mass/2,
+            mass = cell.mass / 2,
             genome = child2Genome
         )
 
@@ -147,7 +202,7 @@ class CellUpdater: Updater {
         mutableMapOf(
             child1 to cell.genome.child1KeepConnections,
             child2 to cell.genome.child2KeepConnections
-        ).filterValues { it }.map { it.key }.forEach inner@ { child ->
+        ).filterValues { it }.map { it.key }.forEach inner@{ child ->
             existingConnections.forEach { connection ->
                 val thisIsFirstChild = child == child1
                 val partner = newArea.cells[connection.partnerId]!!
@@ -157,8 +212,8 @@ class CellUpdater: Updater {
                 if (!thisIsFirstChild) connectionAngleRelative += PI
                 connectionAngleRelative %= (2 * PI)
 
-                val narrowRange = connectionAngleRelative in PI/15 .. PI-PI/15
-                val broadRange = connectionAngleRelative in -PI/15 .. PI+PI/15
+                val narrowRange = connectionAngleRelative in PI / 15..PI - PI / 15
+                val broadRange = connectionAngleRelative in -PI / 15..PI + PI / 15
                 val bothKeepConnections = cell.genome.child1KeepConnections && cell.genome.child2KeepConnections
 
                 val childConnections = if (thisIsFirstChild) child1Connections else child2Connections
@@ -168,24 +223,26 @@ class CellUpdater: Updater {
                     val partnerNewConnections = partner.connections
                         .plus(child.id to CellConnectionState(partnerConnection.angle, child.id))
                     childConnections[partner.id] = CellConnectionState(
-                        (connection.angle - cell.genome.splitAngle - childGenomeAngle + 2*PI) % (2*PI),
+                        (connection.angle - cell.genome.splitAngle - childGenomeAngle + 2 * PI) % (2 * PI),
                         partner.id
                     )
                     partner.connections = partnerNewConnections
                 } else if (broadRange) { // Connect both with angle shift
-                    var childShift = PI/6
+                    var childShift = PI / 6
                     if (!thisIsFirstChild)
                         childShift *= -1
-                    if (abs(cell.genome.splitAngle - connection.angle) > PI/15)
+                    if (abs(cell.genome.splitAngle - connection.angle) > PI / 15)
                         childShift *= -1
 
                     val partnerNewConnections = partner.connections
-                        .plus(child.id to CellConnectionState(
-                            partnerConnection.angle + childShift,
-                            child.id
-                        ))
+                        .plus(
+                            child.id to CellConnectionState(
+                                partnerConnection.angle + childShift,
+                                child.id
+                            )
+                        )
                     childConnections[partner.id] = CellConnectionState(
-                        (connection.angle - cell.genome.splitAngle - childGenomeAngle + childShift + 2*PI) % (2*PI),
+                        (connection.angle - cell.genome.splitAngle - childGenomeAngle + childShift + 2 * PI) % (2 * PI),
                         partner.id
                     )
                     partner.connections = partnerNewConnections
@@ -213,7 +270,7 @@ class CellUpdater: Updater {
         val directionRelativeAngle = originToCenterAngle - impulseDirection.angle()
         val impulseOriginDistance = oldCell.center.distance(impulseOrigin)
         val projectedDistance = sin(directionRelativeAngle) * impulseOriginDistance
-        val translationImpactCoefficient = 1/((projectedDistance/oldCell.radius).pow(2) + 1)
+        val translationImpactCoefficient = 1 / ((projectedDistance / oldCell.radius).pow(2) + 1)
         val rotationImpactCoefficient = 1 - translationImpactCoefficient
         cell.speed += impulseDirection * translationImpactCoefficient
         if (projectedDistance != 0.0)
