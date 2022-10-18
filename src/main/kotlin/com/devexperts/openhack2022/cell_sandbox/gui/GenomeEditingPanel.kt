@@ -1,11 +1,7 @@
 package com.devexperts.openhack2022.cell_sandbox.gui
 
-import com.devexperts.openhack2022.cell_sandbox.game.CellType
-import com.devexperts.openhack2022.cell_sandbox.game.Genome
-import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.WorldSettings
+import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import javafx.geometry.HPos
 import javafx.geometry.Insets
