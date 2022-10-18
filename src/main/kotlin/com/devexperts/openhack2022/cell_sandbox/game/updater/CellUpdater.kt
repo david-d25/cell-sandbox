@@ -165,8 +165,8 @@ class CellUpdater : Updater {
         val child2Center = cell.center + Vector2.unit(splitNormal + PI / 2)
         val child1Angle = splitNormal + cell.genome.child1Angle
         val child2Angle = splitNormal + cell.genome.child2Angle
-        val child1Genome = cell.genome.children.first!!.deepCopy()
-        val child2Genome = cell.genome.children.second!!.deepCopy()
+        val child1Genome = cell.genome.children.first.deepCopy()
+        val child2Genome = cell.genome.children.second.deepCopy()
         child1Genome.applyRadiation(world, world.area.radiation)
         child2Genome.applyRadiation(world, world.area.radiation)
 
@@ -278,6 +278,6 @@ class CellUpdater : Updater {
     }
 
     private fun calculateLiveCost(cell: CellState): Double {
-        return 0.002 * cell.mass
+        return 0.005 * cell.mass
     }
 }

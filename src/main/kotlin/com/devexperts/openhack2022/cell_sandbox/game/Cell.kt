@@ -20,9 +20,10 @@ class Genome (
     var child2Angle: Double,
     var stickOnSplit: Boolean,
     var child1KeepConnections: Boolean,
-    var child2KeepConnections: Boolean,
-    var children: Pair<Genome?, Genome?>
+    var child2KeepConnections: Boolean
 ) {
+    var children: Pair<Genome, Genome> = Pair(this, this)
+
     fun deepCopy() = copyRecursive()
 
     fun applyRadiation(world: World, radiation: Double) {
@@ -44,13 +45,19 @@ class Genome (
             child2Angle,
             stickOnSplit,
             child1KeepConnections,
-            child2KeepConnections,
-            Pair(null, null)
+            child2KeepConnections
         )
         copies[this] = result
         result.children = Pair(
-            if (copies.containsKey(this.children.first)) copies[this.children.first] else this.children.first?.copyRecursive(copies),
-            if (copies.containsKey(this.children.second)) copies[this.children.second] else this.children.second?.copyRecursive(copies)
+            if (copies.containsKey(this.children.first))
+                copies[this.children.first]!!
+            else
+                this.children.first.copyRecursive(copies),
+
+            if (copies.containsKey(this.children.second))
+                copies[this.children.second]!!
+            else
+                this.children.second.copyRecursive(copies)
         )
         return result
     }
@@ -60,7 +67,7 @@ class Genome (
         val result = mutableSetOf(this)
         while (stash.isNotEmpty()) {
             stash.pop().children.toList().forEach {
-                if (it != null && !result.contains(it)) {
+                if (!result.contains(it)) {
                     stash.add(it)
                     result.add(it)
                 }
@@ -90,7 +97,7 @@ class Genome (
         }
 
         current.children.toList().forEach {
-            if (it != null && !visitedGenomes.contains(it))
+            if (!visitedGenomes.contains(it))
                 applyRadiationRecursive(world, it, radiation, allGenomes, visitedGenomes + it)
         }
     }

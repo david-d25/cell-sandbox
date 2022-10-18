@@ -1,7 +1,6 @@
 package com.devexperts.openhack2022.cell_sandbox.gui
 
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.WorldSettings
 import javafx.beans.binding.Bindings
 import javafx.geometry.Insets
 import javafx.geometry.Pos
@@ -15,8 +14,13 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.scene.text.Font
 
-class WorldSettingsPanel(private val settings: WorldSettings, world: World): VBox() {
+class WorldSettingsPanel(world: World): VBox() {
     init {
+        padding = Insets(10.0)
+
+        val settings = world.settings
+        isFillWidth = true
+
         setMargin(this, Insets(10.0))
         setMinSize(250.0, 0.0)
 

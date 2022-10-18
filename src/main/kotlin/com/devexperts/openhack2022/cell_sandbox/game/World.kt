@@ -28,12 +28,7 @@ class World (val settings: WorldSettings) {
         0.1
     )
 
-    init {
-        add(BorderState(Vector2(0, 0), Vector2(area.width, 0)))
-        add(BorderState(Vector2(area.width, 0), Vector2(area.width, area.height)))
-        add(BorderState(Vector2(area.width, area.height), Vector2(0, area.height)))
-        add(BorderState(Vector2(0, area.height), Vector2(0, 0)))
-    }
+    val genomeLibrary = mutableMapOf<Genome, String>()
 
     fun newId() = idCounter.getAndIncrement()
 
@@ -89,6 +84,7 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun resetWorld() {
+        area.borders.clear()
         area.cells.clear()
         area.food.clear()
         fillWorld()
@@ -96,6 +92,11 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun fillWorld() {
+        add(BorderState(Vector2(0, 0), Vector2(area.width, 0)))
+        add(BorderState(Vector2(area.width, 0), Vector2(area.width, area.height)))
+        add(BorderState(Vector2(area.width, area.height), Vector2(0, area.height)))
+        add(BorderState(Vector2(0, area.height), Vector2(0, 0)))
+
         repeat(1) {
             val genome = Genome(
                 CellType.PHAGOCYTE,
@@ -104,18 +105,17 @@ class World (val settings: WorldSettings) {
                 Math.random(),
                 0.5,
                 300.0,
-                Math.PI/6, 0.0, 0.0, true, true, true, Pair(null, null)
+                Math.PI/6, 0.0, 0.0, true, true, true
             )
-            genome.children = Pair(genome, genome)
             add(
                 CellState(
-                Vector2(Math.random() * area.width, Math.random() * 50),
-                Vector2(0, 0),
-                220.0,
-                0.0,
-                0.0,
-                genome
-            )
+                    Vector2(Math.random() * area.width, Math.random() * 50),
+                    Vector2(0, 0),
+                    220.0,
+                    0.0,
+                    0.0,
+                    genome
+                )
             )
         }
         repeat(settings.initialFoodDensity) {
