@@ -29,6 +29,8 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
     private val canvas = Canvas()
 
     init {
+        setMinSize(0.0, 0.0)
+
         canvas.widthProperty().bind(widthProperty())
         canvas.heightProperty().bind(heightProperty())
         children += canvas

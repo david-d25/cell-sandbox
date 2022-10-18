@@ -4,6 +4,7 @@ import kotlin.math.*
 
 data class Vector2 (var x: Double, var y: Double) {
     constructor (x: Number, y: Number): this(x.toDouble(), y.toDouble())
+    constructor (): this(0, 0)
 
     val length get() = sqrt(x.pow(2) + y.pow(2))
 
