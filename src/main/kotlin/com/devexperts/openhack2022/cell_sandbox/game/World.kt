@@ -67,6 +67,9 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun update(delta: Double) {
+        // do not render if the game is paused
+        if (settings.isWorldPaused) return
+
         val oldArea = area
         area = area.deepCopy()
         area.gravity = settings.gravity
@@ -117,7 +120,7 @@ class World (val settings: WorldSettings) {
                 genome
             ))
         }
-        repeat(1000) {
+        repeat(settings.initialFoodDensity) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
         }
     }

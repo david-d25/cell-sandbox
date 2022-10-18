@@ -15,7 +15,7 @@ data class Vector2 (var x: Double, var y: Double) {
     operator fun unaryMinus() =             Vector2(-x, -y)
 
     fun dot(that: Vector2) = x*that.x + y*that.y
-    fun to(that: Vector2) = that - this
+    infix fun to(that: Vector2) = that - this
     fun nearest(vararg vectors: Vector2) = vectors.reduce { a, b -> if (distance(a) > distance(b)) b else a }
 
     fun angle() = if (y > 0) 2*Math.PI - acos(x/length) else acos(x/length)
@@ -25,6 +25,8 @@ data class Vector2 (var x: Double, var y: Double) {
     fun rotate(angle: Double) = Vector2(x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle))
 
     fun unit() = Vector2(x/length, y/length)
+
+    fun unitSafe() = if (x == 0.0 && y == 0.0) Vector2(1, 0) else unit()
 
     fun isNaN() = this.x.isNaN() || this.y.isNaN()
 
