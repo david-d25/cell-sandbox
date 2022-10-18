@@ -79,7 +79,7 @@ class CellRenderer: Renderer<CellState> {
             )
 
             // Connections
-            addConnections(context, target, world)
+            drawConnections(context, target, world)
 
             if (world.settings.debugRender)
                 renderDebugInfo(target, context)
@@ -87,7 +87,7 @@ class CellRenderer: Renderer<CellState> {
         context.restore()
     }
 
-    private fun addConnections(
+    private fun drawConnections(
         context: GraphicsContext,
         target: CellState,
         world: World

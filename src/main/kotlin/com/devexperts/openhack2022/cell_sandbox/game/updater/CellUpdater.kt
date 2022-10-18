@@ -31,7 +31,7 @@ class CellUpdater : Updater {
             }
 
             for (connection in oldCell.connections.values) {
-                moveCell(oldArea, connection, cell, oldCell, delta)
+                spplyImpulseBasedOnCellConnections(oldArea, connection, cell, oldCell, delta)
             }
 
             cell.center += cell.speed * delta
@@ -72,7 +72,7 @@ class CellUpdater : Updater {
         }
     }
 
-    private fun moveCell(
+    private fun spplyImpulseBasedOnCellConnections(
         oldArea: AreaState,
         connection: CellConnectionState,
         cell: CellState,
@@ -83,7 +83,7 @@ class CellUpdater : Updater {
         if (partner != null) {
             val partnerConnection = partner.connections[cell.id]
             if (partnerConnection != null) {
-                // TODO why exactly 4 times?
+                // 4 is picked as balance between physical stability and computational load
                 repeat(4) { stringId ->
                     val angleOffset = stringId * PI / 24 - PI / 12
                     val effectiveConnectionAngle = oldCell.angle + connection.angle + angleOffset
