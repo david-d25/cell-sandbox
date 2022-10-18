@@ -1,7 +1,7 @@
 package com.devexperts.openhack2022.cell_sandbox.game.renderer
 
+import com.devexperts.openhack2022.cell_sandbox.game.CellState
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.CellState
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
@@ -27,11 +27,13 @@ class CellRenderer: Renderer<CellState> {
                 1.0
             )
 
-            context.lineWidth = STROKE_WIDTH
-            context.fill = rgb
-            context.stroke = rgb.darker()
-            context.lineCap = StrokeLineCap.ROUND
-            context.lineJoin = StrokeLineJoin.ROUND
+            context.apply {
+                lineWidth = STROKE_WIDTH
+                fill = rgb
+                stroke = rgb.darker()
+                lineCap = StrokeLineCap.ROUND
+                lineJoin = StrokeLineJoin.ROUND
+            }
 
             val obstacles = calculateObstacles(target, world)
 
@@ -77,26 +79,34 @@ class CellRenderer: Renderer<CellState> {
             )
 
             // Connections
-            context.stroke = Color.rgb(0, 0, 0, 0.4)
-            for ((partnerId, connection) in target.connections) {
-                val partner = world.area.cells[partnerId]
-                if (partner != null) {
-                    val lineStart = target.center + Vector2.unit(target.angle + connection.angle) * target.radius * 0.5
-                    val otherConnection = partner.connections[target.id]
-                    if (otherConnection != null) {
-                        val otherSurfacePoint =
-                            partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius * 0.5
-                        context.strokeLine(
-                            lineStart.x, lineStart.y, otherSurfacePoint.x, otherSurfacePoint.y
-                        )
-                    }
-                }
-            }
+            drawConnections(context, target, world)
 
             if (world.settings.debugRender)
                 renderDebugInfo(target, context)
         }
         context.restore()
+    }
+
+    private fun drawConnections(
+        context: GraphicsContext,
+        target: CellState,
+        world: World
+    ) {
+        context.stroke = Color.rgb(0, 0, 0, 0.4)
+        for ((partnerId, connection) in target.connections) {
+            val partner = world.area.cells[partnerId]
+            if (partner != null) {
+                val lineStart = target.center + Vector2.unit(target.angle + connection.angle) * target.radius * 0.5
+                val otherConnection = partner.connections[target.id]
+                if (otherConnection != null) {
+                    val otherSurfacePoint =
+                        partner.center + Vector2.unit(partner.angle + otherConnection.angle) * partner.radius * 0.5
+                    context.strokeLine(
+                        lineStart.x, lineStart.y, otherSurfacePoint.x, otherSurfacePoint.y
+                    )
+                }
+            }
+        }
     }
 
     private fun getSurfacePointByAngle(
