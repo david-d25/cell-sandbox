@@ -2,6 +2,9 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 
+interface WorldObject {
+    var id: Long
+}
 data class WorldSettings (
     var gravity: Vector2 = Vector2(0, 0.5),
     var viscosity: Double = 0.2,
@@ -17,3 +20,5 @@ data class WorldSettings (
     var maxFoodAbsorbingSpeed: Double = 4.0,
     var minCellMass: Double = 75.0,
 )
+
+class Camera (var center: Vector2, var height: Double)

@@ -2,6 +2,12 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import java.util.*
 
+enum class CellType {
+    //    PHOTOCYTE,
+    PHAGOCYTE,
+//    FLAGELLOCYTE
+}
+
 class Genome (
     var type: CellType,
     var cyanPigment: Double,

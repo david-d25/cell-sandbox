@@ -1,7 +1,7 @@
 package com.devexperts.openhack2022.cell_sandbox.game.renderer
 
+import com.devexperts.openhack2022.cell_sandbox.game.FoodState
 import com.devexperts.openhack2022.cell_sandbox.game.World
-import com.devexperts.openhack2022.cell_sandbox.game.state.FoodState
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
 import javafx.scene.shape.ArcType
