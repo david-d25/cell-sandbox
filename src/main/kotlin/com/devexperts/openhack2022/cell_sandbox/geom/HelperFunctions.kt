@@ -91,7 +91,7 @@ fun projectPointOnLine(point: Vector2, line: Pair<Vector2, Vector2>): Vector2 {
     val b = line.second
     if (a.x == b.x)
         return Vector2(a.x, point.y)
-    return a + a.to(b) * a.to(point).dot(a.to(b)) / a.to(b).dot(a.to(b))
+    return a + (a to b) * (a to point).dot(a to b) / (a to b).dot(a to b)
 }
 
 private fun testVerticalLineIntersection(

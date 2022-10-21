@@ -2,7 +2,9 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.FoodRenderer
-import com.devexperts.openhack2022.cell_sandbox.game.updater.CellUpdater
+import com.devexperts.openhack2022.cell_sandbox.game.updater.CellActionUpdater
+import com.devexperts.openhack2022.cell_sandbox.game.updater.CellNutritionUpdater
+import com.devexperts.openhack2022.cell_sandbox.game.updater.CellPhysicsUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import javafx.scene.canvas.GraphicsContext
@@ -14,7 +16,12 @@ class World (val settings: WorldSettings) {
     private val foodRenderer = FoodRenderer()
     private val cellRenderer = CellRenderer()
 
-    private val updaters = listOf(FoodUpdater(), CellUpdater())
+    private val updaters = listOf(
+        CellPhysicsUpdater(),
+        CellNutritionUpdater(),
+        CellActionUpdater(),
+        FoodUpdater()
+    )
 
     private val idCounter = AtomicLong()
     private var foodGenerationLastTime = System.currentTimeMillis()
