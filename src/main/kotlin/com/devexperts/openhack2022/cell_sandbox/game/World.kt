@@ -58,7 +58,9 @@ class World (val settings: WorldSettings) {
 
         if (wo is CellState) {
             wo.connections.keys.forEach { id ->
-                area.cells[id]!!.connections = area.cells[id]!!.connections.filterKeys { it != wo.id }
+                area.cells[id]?.let { cellState ->
+                    cellState.connections = cellState.connections.filterKeys { it != wo.id }
+                }
             }
         }
     }
