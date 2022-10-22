@@ -55,6 +55,14 @@ class World (val settings: WorldSettings) {
         area.borders.remove(wo.id)
         area.food.remove(wo.id)
         area.cells.remove(wo.id)
+
+        if (wo is CellState) {
+            wo.connections.keys.forEach { id ->
+                area.cells[id]?.let { cellState ->
+                    cellState.connections = cellState.connections.filterKeys { it != wo.id }
+                }
+            }
+        }
     }
 
     @Synchronized
@@ -70,7 +78,7 @@ class World (val settings: WorldSettings) {
 
     @Synchronized
     fun update(delta: Double) {
-        // do not render if the game is paused
+        // Do not update if the game is paused
         if (settings.isWorldPaused) return
 
         val oldArea = area
@@ -78,7 +86,7 @@ class World (val settings: WorldSettings) {
         area.gravity = settings.gravity
         area.viscosity = settings.viscosity
         area.radiation = settings.radiation
-        // TODO this has to be replaced with a parallel and stable implementation in future
+
         updaters.forEach { it.update(this, oldArea, area, delta) }
 
         val randomNumber = Math.random() * 100 + 1
