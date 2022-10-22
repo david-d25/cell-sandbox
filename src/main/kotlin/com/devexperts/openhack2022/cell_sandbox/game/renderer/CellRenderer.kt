@@ -26,80 +26,29 @@ class CellRenderer: Renderer<CellState> {
     }
     override fun render(target: CellState, world: World, context: GraphicsContext) {
         context.save()
-        with(target) {
 
-            val visualRadius = radius - STROKE_WIDTH/2
+        val cytoplasmColor = Color(
+            1 - target.genome.cyanPigment,
+            1 - target.genome.magentaPigment,
+            1 - target.genome.yellowPigment,
+            (target.genome.cyanPigment + target.genome.magentaPigment + target.genome.yellowPigment)/3
+        )
+        val wallColor = cytoplasmColor.interpolate(Color.BLACK, 0.2)
 
-            val rgb = Color(
-                1 - genome.cyanPigment,
-                1 - genome.magentaPigment,
-                1 - genome.yellowPigment,
-                1.0
+        val obstacles = calculateObstacles(target, world).map {
+            Pair(
+                it.first + (it.first to target.center).unit() * STROKE_WIDTH/2,
+                it.second + (it.second to target.center).unit() * STROKE_WIDTH/2
             )
-
-            context.apply {
-                lineWidth = STROKE_WIDTH
-                fill = rgb
-                stroke = rgb.darker()
-                lineCap = StrokeLineCap.ROUND
-                lineJoin = StrokeLineJoin.ROUND
-            }
-
-            val obstacles = calculateObstacles(target, world).map {
-                Pair(
-                    it.first + (it.first to target.center).unit() * STROKE_WIDTH/2,
-                    it.second + (it.second to target.center).unit() * STROKE_WIDTH/2
-                )
-            }
-
-            context.beginPath()
-
-            if (obstacles.isEmpty()) {
-                context.arc(center.x, center.y, visualRadius, visualRadius, 0.0, 360.0)
-            } else if (obstacles.last().second != obstacles.first().first) {
-                context.arc(
-                    center.x, center.y,
-                    visualRadius, visualRadius,
-                    Math.toDegrees((center to obstacles.last().second).angle()),
-                    Math.toDegrees((center to obstacles.first().first).positiveAngleDiff(center to obstacles.last().second)),
-                )
-            }
-
-            obstacles.forEachIndexed { index, obstacle ->
-
-                context.lineTo(obstacle.first.x, obstacle.first.y)
-                context.lineTo(obstacle.second.x, obstacle.second.y)
-
-                if (index != obstacles.size - 1 && obstacle.second != obstacles[index + 1].first) {
-                    val next = obstacles[index + 1]
-
-                    context.arc(
-                        center.x, center.y,
-                        visualRadius, visualRadius,
-                        Math.toDegrees((center to obstacle.second).angle()),
-                        Math.toDegrees((center to next.first).angle() - (center to obstacle.second).angle())
-                    )
-                }
-            }
-
-            context.closePath()
-            context.fill()
-            context.stroke()
-
-            // Nucleus
-            context.fill = rgb.darker()
-            context.fillArc(
-                center.x - sqrt(radius), center.y - sqrt(radius),
-                sqrt(radius)*2, sqrt(radius)*2,
-                0.0, 360.0, ArcType.CHORD
-            )
-
-            // Connections
-            drawConnections(context, target, world)
-
-            if (world.settings.debugRender)
-                renderDebugInfo(target, context, obstacles)
         }
+
+        drawCellBody(context, target, obstacles, cytoplasmColor, wallColor)
+        drawNucleus(context, target, wallColor)
+        drawConnections(context, target, world)
+
+        if (world.settings.debugRender)
+            renderDebugInfo(target, context, obstacles)
+
         context.restore()
     }
 
@@ -123,6 +72,71 @@ class CellRenderer: Renderer<CellState> {
                 }
             }
         }
+    }
+
+    private fun drawNucleus(
+        context: GraphicsContext,
+        target: CellState,
+        color: Color
+    ) {
+        context.fill = color
+        context.fillArc(
+            target.center.x - sqrt(target.radius), target.center.y - sqrt(target.radius),
+            sqrt(target.radius)*2, sqrt(target.radius)*2,
+            0.0, 360.0, ArcType.CHORD
+        )
+    }
+
+    private fun drawCellBody(
+        context: GraphicsContext,
+        target: CellState,
+        obstacles: List<Pair<Vector2, Vector2>>,
+        cytoplasmColor: Color,
+        wallColor: Color
+    ) {
+        context.apply {
+            lineWidth = STROKE_WIDTH
+            fill = cytoplasmColor
+            stroke = wallColor
+            lineCap = StrokeLineCap.ROUND
+            lineJoin = StrokeLineJoin.ROUND
+        }
+
+        val visualRadius = target.radius - STROKE_WIDTH/2
+
+        context.beginPath()
+
+        if (obstacles.isEmpty()) {
+            context.arc(target.center.x, target.center.y, visualRadius, visualRadius, 0.0, 360.0)
+        } else if (obstacles.last().second != obstacles.first().first) {
+            context.arc(
+                target.center.x, target.center.y,
+                visualRadius, visualRadius,
+                Math.toDegrees((target.center to obstacles.last().second).angle()),
+                Math.toDegrees((target.center to obstacles.first().first).positiveAngleDiff(target.center to obstacles.last().second)),
+            )
+        }
+
+        obstacles.forEachIndexed { index, obstacle ->
+
+            context.lineTo(obstacle.first.x, obstacle.first.y)
+            context.lineTo(obstacle.second.x, obstacle.second.y)
+
+            if (index != obstacles.size - 1 && obstacle.second != obstacles[index + 1].first) {
+                val next = obstacles[index + 1]
+
+                context.arc(
+                    target.center.x, target.center.y,
+                    visualRadius, visualRadius,
+                    Math.toDegrees((target.center to obstacle.second).angle()),
+                    Math.toDegrees((target.center to next.first).angle() - (target.center to obstacle.second).angle())
+                )
+            }
+        }
+
+        context.closePath()
+        context.fill()
+        context.stroke()
     }
 
     private fun getSurfacePointByAngle(
@@ -242,13 +256,12 @@ class CellRenderer: Renderer<CellState> {
             val nextPointA = target.center to next.first
 
             val intersection = testLinesIntersection(obstacle, next)
-            if (intersection != null) {
-                if (obstaclePointB.shortestAngularTurn(nextPointA) == CLOCKWISE) {
-                    if (obstacle.first != intersection && next.second != intersection) {
-                        obstacles[index] = obstacle.copy(second = intersection)
-                        obstacles[(index + 1) % obstacles.size] = next.copy(first = intersection)
-                    }
-                }
+            if (intersection != null &&
+                obstaclePointB.shortestAngularTurn(nextPointA) == CLOCKWISE && obstacle.first != intersection &&
+                next.second != intersection
+            ) {
+                obstacles[index] = obstacle.copy(second = intersection)
+                obstacles[(index + 1) % obstacles.size] = next.copy(first = intersection)
             }
         }
 
