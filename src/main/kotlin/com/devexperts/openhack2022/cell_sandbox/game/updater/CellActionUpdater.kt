@@ -13,8 +13,8 @@ class CellActionUpdater : Updater {
             } else if (cell.mass >= cell.genome.splitMass) {
                 split(world, cell, newArea)
             } else {
-                cell.center.x = cell.center.x.coerceIn(1.0..world.area.width - 1)
-                cell.center.y = cell.center.y.coerceIn(1.0..world.area.height - 1)
+                cell.center.x = cell.center.x.coerceIn(1.0..newArea.width - 1)
+                cell.center.y = cell.center.y.coerceIn(1.0..newArea.height - 1)
 
                 if (cell.center.isNaN())
                     throw IllegalStateException("Cell has NaN position!")
@@ -119,11 +119,6 @@ class CellActionUpdater : Updater {
                     partner.connections = partnerNewConnections
                 }
             }
-        }
-
-        existingConnections.forEach { connection ->
-            val partner = newArea.cells[connection.partnerId]!!
-            partner.connections = partner.connections.filterKeys { it != cell.id }
         }
 
         child1.connections = child1Connections
