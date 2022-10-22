@@ -101,6 +101,12 @@ class GenomeEditingPanel(
             }
         }
 
+        val nutritionPriorityInput = Slider(0.0, 1.0, 0.5).apply {
+            valueProperty().addListener { _, _, value ->
+                selectedGenomeProperty.value?.nutritionPriority = value.toDouble()
+            }
+        }
+
         val splitMassInput = Slider(80.0, 360.0, 80.0).apply {
             valueProperty().addListener { _, _, value ->
                 selectedGenomeProperty.value?.splitMass = value.toDouble()
@@ -164,7 +170,10 @@ class GenomeEditingPanel(
             }
         }
 
-        setOf(cyanPigmentInput, magentaPigmentInput, yellowPigmentInput, hardnessInput).forEach {
+        setOf(
+            cyanPigmentInput, magentaPigmentInput, yellowPigmentInput,
+            hardnessInput, nutritionPriorityInput
+        ).forEach {
             it.majorTickUnit = 0.5
             it.minorTickCount = 5
         }
@@ -172,7 +181,7 @@ class GenomeEditingPanel(
         setOf(
             cyanPigmentInput, magentaPigmentInput, yellowPigmentInput,
             hardnessInput, splitMassInput, splitAngleInput,
-            child1AngleInput, child2AngleInput
+            child1AngleInput, child2AngleInput, nutritionPriorityInput
         ).forEach {
             it.isShowTickMarks = true
             it.isShowTickLabels = true
@@ -254,6 +263,7 @@ class GenomeEditingPanel(
 
         editingFormContainer.add(otherLabel, 0, editingFormContainer.rowCount, 2, 1)
         editingFormContainer.addRow(editingFormContainer.rowCount, Label("Hardness: "), hardnessInput)
+        editingFormContainer.addRow(editingFormContainer.rowCount, Label("Nutrition priority: "), nutritionPriorityInput)
 
         editingFormScrollWrapper.content = editingFormContainer
     }
