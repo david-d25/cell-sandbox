@@ -7,7 +7,7 @@ class FoodUpdater: Updater {
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
         newArea.food.values.forEach {
             it.mass -= 0.1 * delta
-            if (it.mass < 1)
+            if (it.mass < 0.1)
                 world.remove(it)
         }
     }
