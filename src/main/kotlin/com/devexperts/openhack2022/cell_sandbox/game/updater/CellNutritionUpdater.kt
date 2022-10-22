@@ -44,7 +44,7 @@ class CellNutritionUpdater : Updater {
     ) {
         val cellMaxFoodGain = world.settings.maxNutritionGainSpeed * delta
 
-        newArea.cells.values.sortedBy { it.id }.filter { it.connections.isNotEmpty() }.forEach { cell ->
+        newArea.cells.values.filter { it.connections.isNotEmpty() }.sortedBy { it.id }.forEach { cell ->
 
             cell.connections.keys.filter { it > cell.id }.forEach { partnerId ->
                 val partner = newArea.cells[partnerId]!!
