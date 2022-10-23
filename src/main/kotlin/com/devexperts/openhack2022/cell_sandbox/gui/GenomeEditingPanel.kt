@@ -299,6 +299,8 @@ class GenomeEditingPanel(
                 Vector2(child2Preview.width/2, child2Preview.height/2),
                 Vector2(), (child2Preview.width/2).pow(2)*PI*0.8, 0.0, 0.0, genome.children.second
             )
+            child1Preview.graphicsContext2D.clearRect(0.0, 0.0, child1Preview.width, child1Preview.height)
+            child2Preview.graphicsContext2D.clearRect(0.0, 0.0, child2Preview.width, child2Preview.height)
             cellRenderer.render(child1Dummy, dummyWorld, child1Preview.graphicsContext2D)
             cellRenderer.render(child2Dummy, dummyWorld, child2Preview.graphicsContext2D)
         }

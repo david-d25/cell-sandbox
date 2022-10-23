@@ -28,8 +28,8 @@ class World (val settings: WorldSettings) {
 
     @Volatile
     var area = AreaState(
-        200.0,
-        200.0,
+        500.0,
+        500.0,
         Vector2(0, 1),
         0.2,
         0.1
@@ -120,7 +120,7 @@ class World (val settings: WorldSettings) {
                 Math.random(),
                 0.5,
                 300.0,
-                Math.PI/6, 0.0, 0.0, true, true, true
+                Math.PI/6, 0.0, 0.0, false, true, true
             )
             add(
                 CellState(
