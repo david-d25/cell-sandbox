@@ -62,6 +62,7 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
 
     private fun mousePressed(event: MouseEvent) {
         lastDragPoint = Vector2(event.x, event.y)
+        draw()
     }
 
     private fun mouseDragged(event: MouseEvent) {
@@ -71,6 +72,7 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
             (lastDragPoint.y - event.y)/scale
         )
         lastDragPoint = Vector2(event.x, event.y)
+        draw()
     }
 
     private fun scrolled(event: ScrollEvent) {
@@ -80,12 +82,14 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
             camera.height *= 1/(event.deltaY*SCROLL_SENSITIVITY + 1)
         if (camera.height < 1.0)
             camera.height = 1.0
+        draw()
     }
 
 
     private fun zoomed(event: ZoomEvent) {
-        camera.height *= event.zoomFactor
+        camera.height /= event.zoomFactor
         if (camera.height < 1.0)
             camera.height = 1.0
+        draw()
     }
 }

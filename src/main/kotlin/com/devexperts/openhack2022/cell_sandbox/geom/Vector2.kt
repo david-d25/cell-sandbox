@@ -18,6 +18,12 @@ data class Vector2 (var x: Double, var y: Double) {
     infix fun to(that: Vector2) = that - this
     fun nearest(vararg vectors: Vector2) = vectors.reduce { a, b -> if (distance(a) > distance(b)) b else a }
 
+    fun shortestAngularTurn(that: Vector2): RotationDirection {
+        val diff = that.angle() - angle()
+        return if (diff < -PI || diff in 0.0..PI) RotationDirection.COUNTERCLOCKWISE else RotationDirection.CLOCKWISE
+    }
+    fun positiveAngleDiff(that: Vector2) = (angle() - that.angle() + 2*PI) % (2*PI)
+
     fun angle() = if (y > 0) 2*Math.PI - acos(x/length) else acos(x/length)
 
     fun distance(that: Vector2) = sqrt((x - that.x).pow(2) + (y - that.y).pow(2))
@@ -32,5 +38,9 @@ data class Vector2 (var x: Double, var y: Double) {
 
     companion object {
         fun unit(angle: Double) = Vector2(cos(angle), sin(angle))
+    }
+
+    enum class RotationDirection {
+        CLOCKWISE, COUNTERCLOCKWISE
     }
 }
