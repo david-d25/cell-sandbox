@@ -20,6 +20,8 @@ data class WorldSettings (
     var maxNutritionGainSpeed: Double = 56.0,
     var minCellMass: Double = 75.0,
     var maxCellMass: Double = 500.0,
+    var showFps: Boolean = true,
+    var fpsUpdateIntervalMs: Long = 500
 )
 
 class Camera (var center: Vector2, var height: Double)
