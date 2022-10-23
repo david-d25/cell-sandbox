@@ -17,7 +17,7 @@ data class WorldSettings (
 
     // Not for players
     var debugRender: Boolean = false,
-    var maxNutritionGainSpeed: Double = 64.0,
+    var maxNutritionGainSpeed: Double = 56.0,
     var minCellMass: Double = 75.0,
     var maxCellMass: Double = 500.0,
 )

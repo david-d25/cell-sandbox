@@ -20,7 +20,8 @@ class Genome (
     var child2Angle: Double,
     var stickOnSplit: Boolean,
     var child1KeepConnections: Boolean,
-    var child2KeepConnections: Boolean
+    var child2KeepConnections: Boolean,
+    var nutritionPriority: Double = 0.5
 ) {
     var children: Pair<Genome, Genome> = Pair(this, this)
 
@@ -45,7 +46,8 @@ class Genome (
             child2Angle,
             stickOnSplit,
             child1KeepConnections,
-            child2KeepConnections
+            child2KeepConnections,
+            nutritionPriority
         )
         copies[this] = result
         result.children = Pair(
@@ -84,15 +86,21 @@ class Genome (
         visitedGenomes: Set<Genome>
     ) {
         if (radiation > Math.random()) {
-            current.type = CellType.values().random()
-            current.cyanPigment = current.cyanPigment.radiated(0.0, 1.0, radiation)
-            current.magentaPigment = current.magentaPigment.radiated(0.0, 1.0, radiation)
-            current.yellowPigment = current.yellowPigment.radiated(0.0, 1.0, radiation)
-            current.hardness = current.hardness.radiated(0.0, 1.0, radiation)
-            current.splitMass = current.splitMass.radiated(world.settings.minCellMass, 999999.0, radiation)
-            current.splitAngle = current.splitAngle.radiated(0.0, 2*Math.PI, radiation)
-            current.child1Angle = current.child1Angle.radiated(0.0, 2*Math.PI, radiation)
-            current.child2Angle = current.child2Angle.radiated(0.0, 2*Math.PI, radiation)
+            current.apply {
+                type = CellType.values().random()
+                cyanPigment = cyanPigment.radiated(0.0, 1.0, radiation)
+                magentaPigment = magentaPigment.radiated(0.0, 1.0, radiation)
+                yellowPigment = yellowPigment.radiated(0.0, 1.0, radiation)
+                hardness = hardness.radiated(0.0, 1.0, radiation)
+                splitMass = splitMass.radiated(world.settings.minCellMass, 999999.0, radiation)
+                splitAngle = splitAngle.radiated(0.0, 2*Math.PI, radiation)
+                child1Angle = child1Angle.radiated(0.0, 2*Math.PI, radiation)
+                child2Angle = child2Angle.radiated(0.0, 2*Math.PI, radiation)
+                stickOnSplit = stickOnSplit.radiated(radiation)
+                child1KeepConnections = child1KeepConnections.radiated(radiation)
+                child2KeepConnections = child2KeepConnections.radiated(radiation)
+                nutritionPriority = nutritionPriority.radiated(0.0, 1.0, radiation)
+            }
             // TODO children
         }
 
@@ -101,6 +109,8 @@ class Genome (
                 applyRadiationRecursive(world, it, radiation, allGenomes, visitedGenomes + it)
         }
     }
+
+    private fun Boolean.radiated(radiation: Double) = if (radiation > Math.random()) !this else this
 
     private fun Double.radiated(min: Double, max: Double, radiation: Double) =
         if (radiation > Math.random()) (this + radiation*(Math.random()*2 - 1)).coerceIn(min..max) else this
