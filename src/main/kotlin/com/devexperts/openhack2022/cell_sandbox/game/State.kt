@@ -2,7 +2,9 @@ package com.devexperts.openhack2022.cell_sandbox.game
 
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.atan
 import kotlin.math.pow
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 data class AreaState (
@@ -44,6 +46,7 @@ data class CellState (
     var angularSpeed: Double,
     var genome: Genome,
     var connections: Map<Long, CellConnectionState> = emptyMap(),
+    var age: Double = 0.0,
     override var id: Long = -1
 ): WorldObject {
 
@@ -55,10 +58,28 @@ data class CellState (
         genome = genome.deepCopy(),
         connections = ConcurrentHashMap(connections.mapValues { it.value.copy() })
     )
+
+    fun applyImpulse(oldCell: CellState, impulseOrigin: Vector2, impulseDirection: Vector2) {
+        if (impulseDirection.length == 0.0)
+            return
+        val originToCenterAngle = (impulseOrigin to oldCell.center).angleSafe()
+        val directionRelativeAngle = originToCenterAngle - impulseDirection.angle()
+        val impulseOriginDistance = oldCell.center.distance(impulseOrigin)
+        val projectedDistance = sin(directionRelativeAngle) * impulseOriginDistance
+        val translationImpactCoefficient = 1 / ((projectedDistance / oldCell.radius).pow(2) + 1)
+        val rotationImpactCoefficient = 1 - translationImpactCoefficient
+        speed += impulseDirection * translationImpactCoefficient
+        if (projectedDistance != 0.0)
+            angularSpeed -= atan(impulseDirection.length / projectedDistance) * rotationImpactCoefficient
+    }
 }
 
 data class FoodState (var center: Vector2, var mass: Double, override var id: Long = -1): WorldObject {
-    val radius get() = (mass/Math.PI).pow(1.0/4.0)
+    val radius get() = (mass/Math.PI).pow(1.0/2.0) / FOOD_DENSITY
 
     fun deepCopy() = copy(center = center.copy())
+
+    companion object {
+        const val FOOD_DENSITY = 4
+    }
 }

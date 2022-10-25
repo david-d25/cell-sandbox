@@ -26,6 +26,8 @@ data class Vector2 (var x: Double, var y: Double) {
 
     fun angle() = if (y > 0) 2*Math.PI - acos(x/length) else acos(x/length)
 
+    fun angleSafe() = if (length != 0.0) angle() else 0.0
+
     fun distance(that: Vector2) = sqrt((x - that.x).pow(2) + (y - that.y).pow(2))
 
     fun rotate(angle: Double) = Vector2(x*cos(angle) - y*sin(angle), x*sin(angle) + y*cos(angle))

@@ -5,7 +5,9 @@ import com.devexperts.openhack2022.cell_sandbox.game.World
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import javafx.animation.AnimationTimer
 import javafx.event.EventHandler
+import javafx.geometry.VPos
 import javafx.scene.canvas.Canvas
+import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent
 import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ZoomEvent
@@ -20,6 +22,11 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
     }
 
     private var lastDragPoint = Vector2(0, 0)
+
+    private var lastFpsUpdate = System.currentTimeMillis()
+    private var framesCounter = 0L
+    private var lastFpsValue = 0L
+
     private val timer = object : AnimationTimer() {
         override fun handle(now: Long) {
             draw()
@@ -56,6 +63,28 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
 
         world.render(context)
 
+        context.restore()
+
+        tickFpsCounter(context)
+    }
+
+    private fun tickFpsCounter(context: GraphicsContext) {
+        context.save()
+        if (System.currentTimeMillis() - lastFpsUpdate > world.settings.fpsUpdateIntervalMs) {
+            lastFpsValue = 1000*framesCounter/(System.currentTimeMillis() - lastFpsUpdate)
+            lastFpsUpdate = System.currentTimeMillis()
+            framesCounter = 0
+        }
+
+        if (world.settings.showFps) {
+            context.stroke = Color.WHITE
+            context.fill = Color.GREEN
+            context.textBaseline = VPos.TOP
+            context.strokeText("$lastFpsValue FPS", 0.0, 0.0)
+            context.fillText("$lastFpsValue FPS", 0.0, 0.0)
+        }
+
+        framesCounter++
         context.restore()
     }
 

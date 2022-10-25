@@ -1,21 +1,22 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 class CellNutritionUpdater : Updater {
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
         val cellMaxFoodGain = world.settings.maxNutritionGainSpeed * delta
-        val nutritionGainByCell = HashMap<Long, Double>()
+        val nutritionGainByCell = ConcurrentHashMap<Long, Double>()
 
         updateNutritionExchanges(world, newArea, nutritionGainByCell, delta)
 
-        newArea.cells.values.forEach { cell ->
+        newArea.cells.values.parallelStream().forEach { cell ->
             val oldCell = if (oldArea.cells.contains(cell.id)) oldArea.cells[cell.id]!! else cell
 
             val liveCost = calculateLiveCost(cell) * delta
             cell.mass -= liveCost
-            nutritionGainByCell[cell.id] = -liveCost
+            nutritionGainByCell.compute(cell.id) { _, v -> (v ?: 0.0) - liveCost }
 
             if (cell.genome.type == CellType.PHAGOCYTE) {
                 var maxConsumableMass = min(
@@ -39,7 +40,7 @@ class CellNutritionUpdater : Updater {
     private fun updateNutritionExchanges(
         world: World,
         newArea: AreaState,
-        nutritionGainByCell: Map<Long, Double>,
+        nutritionGainByCell: MutableMap<Long, Double>,
         delta: Double
     ) {
         val cellMaxFoodGain = world.settings.maxNutritionGainSpeed * delta
@@ -64,19 +65,27 @@ class CellNutritionUpdater : Updater {
                     )
 
                     // Positive -> nutrition moves to this cell, negative -> ...to partner cell
-                    val nutritionTransitionFactor = (targetNutritionRatio - nutritionRatio) / (targetNutritionRatio + nutritionRatio)
+                    val nutritionTransitionFactor =
+                        if (targetNutritionRatio.isFinite())
+                            (targetNutritionRatio - nutritionRatio) / (targetNutritionRatio + nutritionRatio)
+                        else
+                            Double.POSITIVE_INFINITY
+
                     val nutritionTransitionAmount = (nutritionTransitionFactor * cellMaxFoodGain)
                         .coerceIn(-maxPartnerConsumableMass, maxCellConsumableMass) // Can't exceed max nutrition gain speed
                         .coerceIn(-cell.mass, partner.mass) // Can't get from other cell more that its mass
 
                     cell.mass += nutritionTransitionAmount
                     partner.mass -= nutritionTransitionAmount
+
+                    nutritionGainByCell[cell.id] = nutritionGainByCell.getOrDefault(cell.id, 0.0) + nutritionTransitionAmount
+                    nutritionGainByCell[partnerId] = nutritionGainByCell.getOrDefault(partnerId, 0.0) - nutritionTransitionAmount
                 }
             }
         }
     }
 
     private fun calculateLiveCost(cell: CellState): Double {
-        return 0.005 * cell.mass
+        return 0.0075 * cell.mass
     }
 }

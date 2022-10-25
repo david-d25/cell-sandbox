@@ -51,6 +51,8 @@ class WorldSettingsPanel(world: World): VBox() {
             HBox.setHgrow(it, Priority.SOMETIMES)
         }
 
+        radiationSlider.minorTickCount = 100
+
         initialFoodDensitySlider.let {
             it.isShowTickLabels = true
             it.isShowTickMarks = true
@@ -69,7 +71,7 @@ class WorldSettingsPanel(world: World): VBox() {
             it.textProperty().bind(Bindings.format("%.1f", viscositySlider.valueProperty()))
         }
         val radiationLabel = Label("Radiation").also {
-            it.textProperty().bind(Bindings.format("%.1f", radiationSlider.valueProperty()))
+            it.textProperty().bind(Bindings.format("%.2f", radiationSlider.valueProperty()))
         }
         val foodSpawnRateLabel = Label("Food Spawn rate").also {
             it.textProperty().bind(Bindings.format("%.1f", foodSpawnRateSlider.valueProperty()))

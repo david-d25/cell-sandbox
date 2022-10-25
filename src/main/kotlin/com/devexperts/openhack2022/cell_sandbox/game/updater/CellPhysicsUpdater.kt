@@ -5,9 +5,7 @@ import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.projectPointOnLine
 import com.devexperts.openhack2022.cell_sandbox.geom.testCirclesIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
-import kotlin.math.atan
 import kotlin.math.pow
-import kotlin.math.sin
 
 class CellPhysicsUpdater : Updater {
     companion object {
@@ -15,24 +13,21 @@ class CellPhysicsUpdater : Updater {
     }
 
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
-        newArea.cells.values.forEach { cell ->
+        newArea.cells.values.parallelStream().forEach { cell ->
             val oldCell = if (oldArea.cells.contains(cell.id)) oldArea.cells[cell.id]!! else cell
 
             cell.connections = cell.connections.filterValues { !oldArea.cells.contains(it.partnerId) }
 
             cell.speed += world.area.gravity * delta
 
-            for (border in oldArea.borders.values) {
+            for (border in oldArea.borders.values)
                 processBorderCollision(oldCell, border, cell, delta)
-            }
 
-            for (other in oldArea.cells.values) {
+            for (other in oldArea.cells.values)
                 processCellCollision(other, cell, oldCell, delta)
-            }
 
-            for (connection in oldCell.connections.values) {
+            for (connection in oldCell.connections.values)
                 processConnectionPhysics(oldArea, connection, cell, oldCell, delta)
-            }
 
             cell.center += cell.speed * delta
             cell.speed -= cell.speed * world.area.viscosity * delta
@@ -107,7 +102,7 @@ class CellPhysicsUpdater : Updater {
             if (partnerConnection != null) {
                 // 4 is picked as balance between physical stability and computational load
                 repeat(4) { stringId ->
-                    val angleOffset = stringId * Math.PI / 24 - Math.PI / 12
+                    val angleOffset = stringId * Math.PI / 24 - 1.5 * Math.PI / 24
                     val effectiveConnectionAngle = oldCell.angle + connection.angle + angleOffset
                     val effectiveConnectionForceOrigin =
                         oldCell.center + Vector2.unit(effectiveConnectionAngle) * oldCell.radius - Vector2.unit(
@@ -118,23 +113,9 @@ class CellPhysicsUpdater : Updater {
                             Vector2.unit(partner.angle + partnerConnection.angle - angleOffset) * CELL_STICKINESS_DEPTH
                     val connectionForceDirection =
                         (effectiveConnectionForceOrigin to effectiveConnectionForceDestination) / 4 * delta
-                    applyImpulse(oldCell, cell, effectiveConnectionForceOrigin, connectionForceDirection)
+                    cell.applyImpulse(oldCell, effectiveConnectionForceOrigin, connectionForceDirection)
                 }
             }
         }
-    }
-
-    private fun applyImpulse(oldCell: CellState, cell: CellState, impulseOrigin: Vector2, impulseDirection: Vector2) {
-        if (impulseDirection.length == 0.0)
-            return
-        val originToCenterAngle = (impulseOrigin to oldCell.center).angle()
-        val directionRelativeAngle = originToCenterAngle - impulseDirection.angle()
-        val impulseOriginDistance = oldCell.center.distance(impulseOrigin)
-        val projectedDistance = sin(directionRelativeAngle) * impulseOriginDistance
-        val translationImpactCoefficient = 1 / ((projectedDistance / oldCell.radius).pow(2) + 1)
-        val rotationImpactCoefficient = 1 - translationImpactCoefficient
-        cell.speed += impulseDirection * translationImpactCoefficient
-        if (projectedDistance != 0.0)
-            cell.angularSpeed -= atan(impulseDirection.length / projectedDistance) * rotationImpactCoefficient
     }
 }
