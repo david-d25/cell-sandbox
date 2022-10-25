@@ -75,7 +75,11 @@ data class CellState (
 }
 
 data class FoodState (var center: Vector2, var mass: Double, override var id: Long = -1): WorldObject {
-    val radius get() = (mass/Math.PI).pow(1.0/4.0)
+    val radius get() = (mass/Math.PI).pow(1.0/2.0) / FOOD_DENSITY
 
     fun deepCopy() = copy(center = center.copy())
+
+    companion object {
+        const val FOOD_DENSITY = 4
+    }
 }

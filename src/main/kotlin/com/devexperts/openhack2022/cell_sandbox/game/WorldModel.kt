@@ -11,7 +11,7 @@ data class WorldSettings (
     var radiation: Double = 0.0,
     var foodSpawnRate: Int = 100,
     var foodSpawnDelay: Long = 0,
-    var foodMass: Double = 12.0,
+    var foodMass: Double = 40.0,
     var isWorldPaused: Boolean = false,
     var initialFoodDensity: Int = 1000,
 

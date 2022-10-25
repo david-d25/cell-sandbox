@@ -34,12 +34,7 @@ class CellActionUpdater : Updater {
             cell.applyImpulse(cell, cell.center, unit(cell.angle) * unit(cell.angle).dot(speedDiff) * delta)
             cell.mass -= speedDiff.length * world.settings.flagellocyteFlagellumForceCost * delta
 
-            val tailRayCast = world.rayCast(
-                cell.center + unit(cell.angle + PI) * cell.radius,
-                cell.center + unit(cell.angle + PI) * cell.radius * 2
-            )
-
-            if (tailRayCast.any { it !is FoodState && it.id != cell.id })
+            if (cell.connections.values.any { abs(it.angle - PI) < PI/15 })
                 processCellDeath(world, cell) // Die if tail is blocked
         }
 

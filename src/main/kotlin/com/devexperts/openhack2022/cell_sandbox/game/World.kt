@@ -135,23 +135,31 @@ class World (val settings: WorldSettings) {
         add(BorderState(Vector2(0, area.height), Vector2(0, 0)))
 
         repeat(1) {
-            val genome = Genome(
-                CellType.PHAGOCYTE,
-                Math.random(),
-                Math.random(),
-                Math.random(),
-                0.5,
-                350.0,
-                Math.PI/2, 0.0, 0.0, true, true, true
+            val sporeGenome = Genome(
+                CellType.PHAGOCYTE, Math.random(), Math.random(), Math.random(),
+                0.6, 300.0, 0.0, 0.0, 0.0, true, true, true
             )
+
+            val phagocyteGenome = Genome(
+                CellType.PHAGOCYTE, Math.random(), Math.random(), Math.random(),
+                0.6, 300.0, 0.0, Math.PI/6, 0.0, false, true, true
+            )
+            val flagellocyteGenome = Genome(
+                CellType.FLAGELLOCYTE, Math.random(), Math.random(), Math.random(),
+                0.6, 601.0, 0.0, Math.PI/6, 0.0, false, true, true
+            )
+
+            sporeGenome.children = Pair(phagocyteGenome, flagellocyteGenome)
+            phagocyteGenome.children = Pair(sporeGenome, phagocyteGenome)
+
             add(
                 CellState(
                     Vector2(Math.random() * area.width, Math.random() * 50),
                     Vector2(0, 0),
-                    220.0,
+                    300.0,
                     0.0,
                     0.0,
-                    genome
+                    sporeGenome
                 )
             )
         }
