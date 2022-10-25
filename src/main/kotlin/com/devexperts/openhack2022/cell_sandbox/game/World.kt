@@ -7,14 +7,18 @@ import com.devexperts.openhack2022.cell_sandbox.game.updater.CellNutritionUpdate
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellPhysicsUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
+import com.devexperts.openhack2022.cell_sandbox.geom.testLinesIntersection
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
 import java.util.concurrent.atomic.AtomicLong
 
 class World (val settings: WorldSettings) {
 
-    private val foodRenderer = FoodRenderer()
-    private val cellRenderer = CellRenderer()
+    private val renderers = listOf(
+        FoodRenderer(),
+        CellRenderer()
+    )
 
     private val updaters = listOf(
         CellPhysicsUpdater(),
@@ -72,8 +76,7 @@ class World (val settings: WorldSettings) {
         context.fill = BACKGROUND_COLOR
         context.fillRect(0.0, 0.0, area.width, area.height)
 
-        area.food.values.forEach { foodRenderer.render(it, this, context) }
-        area.cells.values.forEach { cellRenderer.render(it, this, context) }
+        renderers.forEach { it.render(this, context) }
     }
 
     @Synchronized
@@ -95,6 +98,25 @@ class World (val settings: WorldSettings) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
             foodGenerationLastTime = currentTime
         }
+    }
+
+    fun rayCast(a: Vector2, b: Vector2): Set<WorldObject> { // This should definitely be optimized
+        val result = mutableSetOf<WorldObject>()
+
+        area.borders.values.forEach {
+            if (testLinesIntersection(Pair(it.a, it.b), Pair(a, b)) != null)
+                result += it
+        }
+        area.cells.values.forEach {
+            if (testLineAndCircleIntersection(it.center, it.radius, a, b).isNotEmpty())
+                result += it
+        }
+        area.food.values.forEach {
+            if (testLineAndCircleIntersection(it.center, it.radius, a, b).isNotEmpty())
+                result += it
+        }
+
+        return result
     }
 
     @Synchronized
@@ -119,8 +141,8 @@ class World (val settings: WorldSettings) {
                 Math.random(),
                 Math.random(),
                 0.5,
-                300.0,
-                Math.PI/6, 0.0, 0.0, false, true, true
+                350.0,
+                Math.PI/2, 0.0, 0.0, true, true, true
             )
             add(
                 CellState(

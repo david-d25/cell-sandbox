@@ -1,16 +1,17 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 class CellNutritionUpdater : Updater {
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
         val cellMaxFoodGain = world.settings.maxNutritionGainSpeed * delta
-        val nutritionGainByCell = HashMap<Long, Double>()
+        val nutritionGainByCell = ConcurrentHashMap<Long, Double>()
 
         updateNutritionExchanges(world, newArea, nutritionGainByCell, delta)
 
-        newArea.cells.values.forEach { cell ->
+        newArea.cells.values.parallelStream().forEach { cell ->
             val oldCell = if (oldArea.cells.contains(cell.id)) oldArea.cells[cell.id]!! else cell
 
             val liveCost = calculateLiveCost(cell) * delta
@@ -85,6 +86,6 @@ class CellNutritionUpdater : Updater {
     }
 
     private fun calculateLiveCost(cell: CellState): Double {
-        return 0.005 * cell.mass
+        return 0.0075 * cell.mass
     }
 }

@@ -1,13 +1,18 @@
 package com.devexperts.openhack2022.cell_sandbox.game.updater
 
 import com.devexperts.openhack2022.cell_sandbox.game.*
-import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import com.devexperts.openhack2022.cell_sandbox.geom.Vector2.Companion.unit
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 class CellActionUpdater : Updater {
     override fun update(world: World, oldArea: AreaState, newArea: AreaState, delta: Double) {
         newArea.cells.values.forEach { cell ->
+            cell.age += delta
+
+            doTypeSpecificActions(cell, world, delta)
+
             if (cell.mass < world.settings.minCellMass) {
                 processCellDeath(world, cell)
             } else if (cell.mass >= cell.genome.splitMass) {
@@ -22,6 +27,25 @@ class CellActionUpdater : Updater {
         }
     }
 
+    private fun doTypeSpecificActions(cell: CellState, world: World, delta: Double) {
+        if (cell.genome.type == CellType.FLAGELLOCYTE) {
+            val targetSpeed = unit(cell.angle) * cell.genome.flagellumForce
+            val speedDiff = targetSpeed - cell.speed
+            cell.applyImpulse(cell, cell.center, unit(cell.angle) * unit(cell.angle).dot(speedDiff) * delta)
+            cell.mass -= speedDiff.length * world.settings.flagellocyteFlagellumForceCost * delta
+
+            val tailRayCast = world.rayCast(
+                cell.center + unit(cell.angle + PI) * cell.radius,
+                cell.center + unit(cell.angle + PI) * cell.radius * 2
+            )
+
+            if (tailRayCast.any { it !is FoodState && it.id != cell.id })
+                processCellDeath(world, cell) // Die if tail is blocked
+        }
+
+        // Other type-specific things here...
+    }
+
     private fun processCellDeath(
         world: World,
         cell: CellState
@@ -31,18 +55,18 @@ class CellActionUpdater : Updater {
     }
 
     private fun split(world: World, cell: CellState, newArea: AreaState) {
-        val splitNormal = cell.angle + cell.genome.splitAngle
-        val child1Center = cell.center + Vector2.unit(splitNormal - Math.PI / 2)
-        val child2Center = cell.center + Vector2.unit(splitNormal + Math.PI / 2)
-        val child1Angle = splitNormal + cell.genome.child1Angle
-        val child2Angle = splitNormal + cell.genome.child2Angle
+        val splitNormal = cell.angle + cell.genome.splitAngle + PI/2
+        val child1Center = cell.center + unit(splitNormal - Math.PI / 2)
+        val child2Center = cell.center + unit(splitNormal + Math.PI / 2)
+        val child1Angle = cell.angle + cell.genome.splitAngle + cell.genome.child1Angle
+        val child2Angle = cell.angle + cell.genome.splitAngle + cell.genome.child2Angle
         val child1Genome = cell.genome.children.first.deepCopy()
         val child2Genome = cell.genome.children.second.deepCopy()
         child1Genome.applyRadiation(world, world.area.radiation)
         child2Genome.applyRadiation(world, world.area.radiation)
 
-        val child1ConnectionAngle = -cell.genome.child1Angle + Math.PI / 2
-        val child2ConnectionAngle = -cell.genome.child2Angle - Math.PI / 2
+        val child1ConnectionAngle = (-cell.genome.child1Angle + 3 * PI) % (2 * PI)
+        val child2ConnectionAngle = (-cell.genome.child2Angle + 2 * PI) % (2 * PI)
 
         val child1 = cell.copy(
             id = world.newId(),
@@ -51,6 +75,7 @@ class CellActionUpdater : Updater {
             angle = child1Angle,
             mass = cell.mass / 2,
             genome = child1Genome,
+            age = 0.0
         )
         val child2 = cell.copy(
             id = world.newId(),
@@ -58,7 +83,8 @@ class CellActionUpdater : Updater {
             speed = cell.speed,
             angle = child2Angle,
             mass = cell.mass / 2,
-            genome = child2Genome
+            genome = child2Genome,
+            age = 0.0
         )
 
         val existingConnections = cell.connections.values
@@ -79,7 +105,7 @@ class CellActionUpdater : Updater {
                 val partner = newArea.cells[connection.partnerId]!!
                 val partnerConnection = partner.connections[cell.id]!!
 
-                var connectionAngleRelative = cell.genome.splitAngle - connection.angle
+                var connectionAngleRelative = cell.genome.splitAngle - connection.angle + PI/2
                 if (!thisIsFirstChild) connectionAngleRelative += Math.PI
                 connectionAngleRelative %= (2 * Math.PI)
 
@@ -102,7 +128,7 @@ class CellActionUpdater : Updater {
                     var childShift = Math.PI / 6
                     if (!thisIsFirstChild)
                         childShift *= -1
-                    if (abs(cell.genome.splitAngle - connection.angle) > Math.PI / 15)
+                    if (abs(cell.genome.splitAngle - connection.angle + PI/2) > Math.PI / 15)
                         childShift *= -1
 
                     val partnerNewConnections = partner.connections

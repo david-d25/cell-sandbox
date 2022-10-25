@@ -188,7 +188,6 @@ class GenomeSelector(
         private val size = 30.0
         private val renderer = CellRenderer()
         private val cellDummy = CellState(Vector2(size/2, size/2), Vector2(), 300.0, 0.0, 0.0, genome)
-        private val worldDummy = World(WorldSettings())
 
         init {
             styleClass.add("item")
@@ -199,7 +198,8 @@ class GenomeSelector(
             onMouseExited = EventHandler { background = Background.EMPTY }
 
             val icon = Canvas(size, size)
-            renderer.render(cellDummy, worldDummy, icon.graphicsContext2D)
+            val worldDummy = World(WorldSettings()).apply { add(cellDummy) }
+            renderer.render(worldDummy, icon.graphicsContext2D)
 
             val name = Label(text)
 
