@@ -41,7 +41,7 @@ class App: Application() {
 
         asidePanel.tabs.addAll(worldSettingsTab, genomeEditingTab)
         asidePanel.prefWidth = stage.scene.width / 5
-        asidePanel.minWidth = 320.0
+        asidePanel.minWidth = 340.0
 
         val mainBox = SplitPane(worldView, asidePanel)
         mainBox.setDividerPositions(0.8)

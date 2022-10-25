@@ -45,8 +45,8 @@ class GenomeEditingPanel(
     private val genomeToEditSelector = GenomeSelector(world.genomeLibrary)
     private val selectedGenomeProperty = genomeToEditSelector.selectionProperty
 
-    private val child1Preview = Canvas(60.0, 60.0)
-    private val child2Preview = Canvas(60.0, 60.0)
+    private val child1Preview = Canvas(65.0, 65.0)
+    private val child2Preview = Canvas(65.0, 65.0)
 
     private val cellRenderer = CellRenderer()
 
@@ -71,7 +71,10 @@ class GenomeEditingPanel(
 
         val typeInput = ComboBox<CellType>()
         typeInput.items.addAll(CellType.values())
-        typeInput.valueProperty().addListener { _, _, value -> selectedGenomeProperty.value?.type = value }
+        typeInput.valueProperty().addListener { _, _, value ->
+            selectedGenomeProperty.value?.type = value
+            updateChildrenPreviews()
+        }
 
         val cyanPigmentInput = Slider(0.0, 1.0, 0.0).apply {
             valueProperty().addListener { _, _, value ->
@@ -293,11 +296,11 @@ class GenomeEditingPanel(
             val dummyWorld = World(WorldSettings())
             val child1Dummy = CellState(
                 Vector2(child1Preview.width/2, child1Preview.height/2),
-                Vector2(), (child1Preview.width/2).pow(2)*PI*0.8, 0.0, 0.0, genome.children.first
+                Vector2(), (child1Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.first
             )
             val child2Dummy = CellState(
                 Vector2(child2Preview.width/2, child2Preview.height/2),
-                Vector2(), (child2Preview.width/2).pow(2)*PI*0.8, 0.0, 0.0, genome.children.second
+                Vector2(), (child2Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.second
             )
             dummyWorld.add(child1Dummy)
             dummyWorld.add(child2Dummy)

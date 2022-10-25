@@ -187,7 +187,7 @@ class GenomeSelector(
     inner class GenomeSelectorItem(genome: Genome, text: String): HBox() {
         private val size = 30.0
         private val renderer = CellRenderer()
-        private val cellDummy = CellState(Vector2(size/2, size/2), Vector2(), 300.0, 0.0, 0.0, genome)
+        private val cellDummy = CellState(Vector2(size/2, size/2), Vector2(), 200.0, -Math.PI/4, 0.0, genome)
 
         init {
             styleClass.add("item")
