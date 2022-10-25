@@ -34,7 +34,7 @@ class CellActionUpdater : Updater {
             cell.applyImpulse(cell, cell.center, unit(cell.angle) * unit(cell.angle).dot(speedDiff) * delta)
             cell.mass -= speedDiff.length * world.settings.flagellocyteFlagellumForceCost * delta
 
-            if (cell.connections.values.any { abs(it.angle - PI) < PI/15 })
+            if (cell.connections.values.any { abs(it.angle - PI) < PI/12 })
                 processCellDeath(world, cell) // Die if tail is blocked
         }
 
