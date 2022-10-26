@@ -9,6 +9,7 @@ import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import com.devexperts.openhack2022.cell_sandbox.geom.testLineAndCircleIntersection
 import com.devexperts.openhack2022.cell_sandbox.geom.testLinesIntersection
+import javafx.beans.property.SimpleLongProperty
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
 import java.util.concurrent.atomic.AtomicLong
@@ -40,6 +41,7 @@ class World (val settings: WorldSettings) {
     )
 
     val genomeLibrary = mutableMapOf<Genome, String>()
+    var selectedCellIdProperty = SimpleLongProperty(-1L)
 
     fun newId() = idCounter.getAndIncrement()
 
@@ -134,35 +136,6 @@ class World (val settings: WorldSettings) {
         add(BorderState(Vector2(area.width, area.height), Vector2(0, area.height)))
         add(BorderState(Vector2(0, area.height), Vector2(0, 0)))
 
-        repeat(1) {
-            val sporeGenome = Genome(
-                CellType.PHAGOCYTE, Math.random(), Math.random(), Math.random(),
-                0.6, 300.0, 0.0, 0.0, 0.0, true, true, true
-            )
-
-            val phagocyteGenome = Genome(
-                CellType.PHAGOCYTE, Math.random(), Math.random(), Math.random(),
-                0.6, 300.0, 0.0, Math.PI/6, 0.0, false, true, true
-            )
-            val flagellocyteGenome = Genome(
-                CellType.FLAGELLOCYTE, Math.random(), Math.random(), Math.random(),
-                0.6, 601.0, 0.0, Math.PI/6, 0.0, false, true, true
-            )
-
-            sporeGenome.children = Pair(phagocyteGenome, flagellocyteGenome)
-            phagocyteGenome.children = Pair(sporeGenome, phagocyteGenome)
-
-            add(
-                CellState(
-                    Vector2(Math.random() * area.width, Math.random() * 50),
-                    Vector2(0, 0),
-                    300.0,
-                    0.0,
-                    0.0,
-                    sporeGenome
-                )
-            )
-        }
         repeat(settings.initialFoodDensity) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
         }

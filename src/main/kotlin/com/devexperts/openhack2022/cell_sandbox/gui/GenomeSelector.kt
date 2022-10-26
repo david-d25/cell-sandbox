@@ -66,6 +66,14 @@ class GenomeSelector(
 
         if (newGenomeFactory != null)
             dropdown.children += NewGenomeButtonItem()
+
+        if (library.isEmpty() && newGenomeFactory == null) {
+            dropdown.children += Label("You haven't created any genomes yet!\n Go to genome editor to create one.").apply {
+                alignment = Pos.CENTER
+                textFill = Color.GREY
+            }
+            dropdown.alignment = Pos.CENTER
+        }
     }
 
     private fun initDropdown() {

@@ -3,6 +3,7 @@ package com.devexperts.openhack2022.cell_sandbox.gui
 import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import javafx.beans.NamedArg
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.VPos
@@ -14,7 +15,7 @@ import kotlin.math.PI
 import kotlin.math.pow
 
 class GenomeEditingPanel(
-    private val world: World,
+    @NamedArg("world") private val world: World,
 ): AnchorPane() {
     private val createGenomeFactory = {
         var counter = 1
@@ -293,7 +294,8 @@ class GenomeEditingPanel(
     private fun updateChildrenPreviews() {
         val genome = selectedGenomeProperty.value
         if (genome != null) {
-            val dummyWorld = World(WorldSettings())
+            val dummyWorld1 = World(WorldSettings())
+            val dummyWorld2 = World(WorldSettings())
             val child1Dummy = CellState(
                 Vector2(child1Preview.width/2, child1Preview.height/2),
                 Vector2(), (child1Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.first
@@ -302,12 +304,12 @@ class GenomeEditingPanel(
                 Vector2(child2Preview.width/2, child2Preview.height/2),
                 Vector2(), (child2Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.second
             )
-            dummyWorld.add(child1Dummy)
-            dummyWorld.add(child2Dummy)
+            dummyWorld1.add(child1Dummy)
+            dummyWorld2.add(child2Dummy)
             child1Preview.graphicsContext2D.clearRect(0.0, 0.0, child1Preview.width, child1Preview.height)
             child2Preview.graphicsContext2D.clearRect(0.0, 0.0, child2Preview.width, child2Preview.height)
-            cellRenderer.render(dummyWorld, child1Preview.graphicsContext2D)
-            cellRenderer.render(dummyWorld, child2Preview.graphicsContext2D)
+            cellRenderer.render(dummyWorld1, child1Preview.graphicsContext2D)
+            cellRenderer.render(dummyWorld2, child2Preview.graphicsContext2D)
         }
     }
 }

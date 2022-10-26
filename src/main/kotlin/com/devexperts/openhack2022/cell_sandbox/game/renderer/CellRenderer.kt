@@ -54,6 +54,8 @@ class CellRenderer: Renderer<CellState> {
             drawConnections(context, cell, world)
         }
 
+        drawSelectionIndicator(context, world)
+
         if (world.settings.debugRender) {
             world.area.cells.values.forEach { cell ->
                 renderDebugInfo(cell, context, obstaclesByCellId[cell.id]!!)
@@ -62,6 +64,24 @@ class CellRenderer: Renderer<CellState> {
 
         obstaclesByCellId.clear()
         context.restore()
+    }
+
+    private fun drawSelectionIndicator(
+        context: GraphicsContext,
+        world: World
+    ) {
+        val cell = world.area.cells[world.selectedCellIdProperty.value]
+        if (cell != null) {
+            context.stroke = Color(0.3, 0.3, 1.0, 0.4)
+            context.lineWidth = 3.0
+            val arcRadius = cell.radius * 1.5
+            context.strokeArc(
+                cell.center.x - arcRadius,
+                cell.center.y - arcRadius,
+                arcRadius * 2, arcRadius * 2,
+                0.0, 360.0, ArcType.CHORD
+            )
+        }
     }
 
     private fun drawConnections(
