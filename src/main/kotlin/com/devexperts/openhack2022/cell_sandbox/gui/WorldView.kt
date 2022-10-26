@@ -13,7 +13,6 @@ import javafx.scene.input.ScrollEvent
 import javafx.scene.input.ZoomEvent
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
-import javafx.scene.transform.Affine
 
 class WorldView(var world: World, var camera: Camera): StackPane() {
     companion object {
@@ -38,6 +37,12 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
     init {
         setMinSize(0.0, 0.0)
 
+        widthProperty().addListener { _, _, v -> camera.viewportWidth = v.toDouble() }
+        heightProperty().addListener { _, _, v -> camera.viewportHeight = v.toDouble() }
+
+        camera.viewportWidth = width
+        camera.viewportHeight = height
+
         canvas.widthProperty().bind(widthProperty())
         canvas.heightProperty().bind(heightProperty())
         children += canvas
@@ -55,17 +60,21 @@ class WorldView(var world: World, var camera: Camera): StackPane() {
 
         context.fill = OUTER_AREA_COLOR
         context.clearRect(0.0, 0.0, width, height)
-        val scale = height/camera.height
-        context.transform(Affine(
-            scale, 0.0, width/2 - scale*camera.center.x,
-            0.0, scale, height/2 - scale*camera.center.y
-        ))
+        context.transform(camera.transform)
 
         world.render(context)
 
         context.restore()
 
+        tryLookAtSelectedCell()
+
         tickFpsCounter(context)
+    }
+
+    private fun tryLookAtSelectedCell() {
+        val cell = world.area.cells[world.selectedCellIdProperty.value]
+        if (cell != null)
+            camera.center += (cell.center - camera.center)/10
     }
 
     private fun tickFpsCounter(context: GraphicsContext) {

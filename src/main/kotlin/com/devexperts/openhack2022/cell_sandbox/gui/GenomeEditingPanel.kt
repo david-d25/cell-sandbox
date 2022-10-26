@@ -3,6 +3,7 @@ package com.devexperts.openhack2022.cell_sandbox.gui
 import com.devexperts.openhack2022.cell_sandbox.game.*
 import com.devexperts.openhack2022.cell_sandbox.game.renderer.CellRenderer
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import javafx.beans.NamedArg
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.geometry.VPos
@@ -14,7 +15,7 @@ import kotlin.math.PI
 import kotlin.math.pow
 
 class GenomeEditingPanel(
-    private val world: World,
+    @NamedArg("world") private val world: World,
 ): AnchorPane() {
     private val createGenomeFactory = {
         var counter = 1
@@ -45,8 +46,8 @@ class GenomeEditingPanel(
     private val genomeToEditSelector = GenomeSelector(world.genomeLibrary)
     private val selectedGenomeProperty = genomeToEditSelector.selectionProperty
 
-    private val child1Preview = Canvas(60.0, 60.0)
-    private val child2Preview = Canvas(60.0, 60.0)
+    private val child1Preview = Canvas(65.0, 65.0)
+    private val child2Preview = Canvas(65.0, 65.0)
 
     private val cellRenderer = CellRenderer()
 
@@ -71,7 +72,10 @@ class GenomeEditingPanel(
 
         val typeInput = ComboBox<CellType>()
         typeInput.items.addAll(CellType.values())
-        typeInput.valueProperty().addListener { _, _, value -> selectedGenomeProperty.value?.type = value }
+        typeInput.valueProperty().addListener { _, _, value ->
+            selectedGenomeProperty.value?.type = value
+            updateChildrenPreviews()
+        }
 
         val cyanPigmentInput = Slider(0.0, 1.0, 0.0).apply {
             valueProperty().addListener { _, _, value ->
@@ -290,21 +294,22 @@ class GenomeEditingPanel(
     private fun updateChildrenPreviews() {
         val genome = selectedGenomeProperty.value
         if (genome != null) {
-            val dummyWorld = World(WorldSettings())
+            val dummyWorld1 = World(WorldSettings())
+            val dummyWorld2 = World(WorldSettings())
             val child1Dummy = CellState(
                 Vector2(child1Preview.width/2, child1Preview.height/2),
-                Vector2(), (child1Preview.width/2).pow(2)*PI*0.8, 0.0, 0.0, genome.children.first
+                Vector2(), (child1Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.first
             )
             val child2Dummy = CellState(
                 Vector2(child2Preview.width/2, child2Preview.height/2),
-                Vector2(), (child2Preview.width/2).pow(2)*PI*0.8, 0.0, 0.0, genome.children.second
+                Vector2(), (child2Preview.width/2).pow(2)*PI*0.2, -Math.PI/4, 0.0, genome.children.second
             )
-            dummyWorld.add(child1Dummy)
-            dummyWorld.add(child2Dummy)
+            dummyWorld1.add(child1Dummy)
+            dummyWorld2.add(child2Dummy)
             child1Preview.graphicsContext2D.clearRect(0.0, 0.0, child1Preview.width, child1Preview.height)
             child2Preview.graphicsContext2D.clearRect(0.0, 0.0, child2Preview.width, child2Preview.height)
-            cellRenderer.render(dummyWorld, child1Preview.graphicsContext2D)
-            cellRenderer.render(dummyWorld, child2Preview.graphicsContext2D)
+            cellRenderer.render(dummyWorld1, child1Preview.graphicsContext2D)
+            cellRenderer.render(dummyWorld2, child2Preview.graphicsContext2D)
         }
     }
 }
