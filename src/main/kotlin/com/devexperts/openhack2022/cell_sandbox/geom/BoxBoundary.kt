@@ -3,7 +3,7 @@ package com.devexperts.openhack2022.cell_sandbox.geom
 /**
  * Represents an Axis-Aligned Bounding Box.
  */
-data class Aabb
+data class BoxBoundary
 /**
  * @param min upper-left corner of the box
  * @param max lower-right corner of the box
@@ -13,6 +13,7 @@ constructor(
     val max: Vector2
 ) {
     constructor(minX: Number, minY: Number, maxX: Number, maxY: Number): this(Vector2(minX, minY), Vector2(maxX, maxY))
+    constructor(): this(Vector2(0, 0), Vector2(0, 0))
 
     val center: Vector2 get() = Vector2((min.x + max.x)/2, (min.y + max.y)/2)
     val width: Double get() = max.x - min.x

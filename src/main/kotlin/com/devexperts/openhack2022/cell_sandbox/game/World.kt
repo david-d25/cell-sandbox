@@ -6,15 +6,24 @@ import com.devexperts.openhack2022.cell_sandbox.game.updater.CellActionUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellNutritionUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.CellPhysicsUpdater
 import com.devexperts.openhack2022.cell_sandbox.game.updater.FoodUpdater
-import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
+import com.devexperts.openhack2022.cell_sandbox.geom.*
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
 import java.util.concurrent.atomic.AtomicLong
 
 class World (val settings: WorldSettings) {
 
+    companion object {
+        val BACKGROUND_COLOR: Color = Color.rgb(225, 225, 255)
+        const val WORLD_WIDTH = 200
+        const val WORLD_HEIGHT = 200
+    }
+
     private val foodRenderer = FoodRenderer()
     private val cellRenderer = CellRenderer()
+
+    // NOTE: create Tree with empty area
+    private val cellObjects = WorldAreaTree()
 
     private val updaters = listOf(
         CellPhysicsUpdater(),
@@ -28,8 +37,8 @@ class World (val settings: WorldSettings) {
 
     @Volatile
     var area = AreaState(
-        200.0,
-        200.0,
+        WORLD_WIDTH.toDouble(),
+        WORLD_HEIGHT.toDouble(),
         Vector2(0, 1),
         0.2,
         0.1
@@ -39,7 +48,7 @@ class World (val settings: WorldSettings) {
 
     fun newId() = idCounter.getAndIncrement()
 
-    fun add(wo: WorldObject) {
+    fun add(wo: WorldObject): WorldObject {
         if (wo.id == -1L)
             wo.id = newId()
 
@@ -49,6 +58,8 @@ class World (val settings: WorldSettings) {
             area.food[wo.id] = wo
         if (wo is CellState)
             area.cells[wo.id] = wo
+
+        return wo
     }
 
     fun remove(wo: WorldObject) {
@@ -63,6 +74,9 @@ class World (val settings: WorldSettings) {
                 }
             }
         }
+
+        // TODO move it to better place
+        cellObjects.remove(wo)
     }
 
     @Synchronized
@@ -131,14 +145,13 @@ class World (val settings: WorldSettings) {
                     0.0,
                     genome
                 )
-            )
+            ).also {
+                // TODO move it to better place
+                cellObjects.add(it)
+            }
         }
         repeat(settings.initialFoodDensity) {
             add(FoodState(Vector2(Math.random() * area.width, Math.random() * area.height), settings.foodMass))
         }
-    }
-
-    companion object {
-        val BACKGROUND_COLOR: Color = Color.rgb(225, 225, 255)
     }
 }

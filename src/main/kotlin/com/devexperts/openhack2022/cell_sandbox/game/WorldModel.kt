@@ -1,9 +1,11 @@
 package com.devexperts.openhack2022.cell_sandbox.game
 
+import com.devexperts.openhack2022.cell_sandbox.geom.BoxBoundary
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 
 interface WorldObject {
     var id: Long
+    var boundary: BoxBoundary
 }
 data class WorldSettings (
     var gravity: Vector2 = Vector2(0, 0.5),

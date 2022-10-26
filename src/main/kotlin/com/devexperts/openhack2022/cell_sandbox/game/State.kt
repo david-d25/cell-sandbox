@@ -1,11 +1,12 @@
 package com.devexperts.openhack2022.cell_sandbox.game
 
+import com.devexperts.openhack2022.cell_sandbox.geom.BoxBoundary
 import com.devexperts.openhack2022.cell_sandbox.geom.Vector2
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-data class AreaState (
+data class AreaState(
     var width: Double,
     var height: Double,
     var gravity: Vector2,
@@ -26,17 +27,19 @@ data class AreaState (
 data class BorderState(
     val a: Vector2,
     val b: Vector2,
+    // TODO fixed object boundaries
+    override var boundary: BoxBoundary = BoxBoundary(),
     override var id: Long = -1
-): WorldObject {
+) : WorldObject {
     fun deepCopy() = copy(a = a.copy(), b = b.copy())
 }
 
-data class CellConnectionState (
+data class CellConnectionState(
     val angle: Double,
     var partnerId: Long
 )
 
-data class CellState (
+data class CellState(
     var center: Vector2,
     var speed: Vector2,
     var mass: Double,
@@ -44,10 +47,12 @@ data class CellState (
     var angularSpeed: Double,
     var genome: Genome,
     var connections: Map<Long, CellConnectionState> = emptyMap(),
-    override var id: Long = -1
-): WorldObject {
+    override var id: Long = -1,
+    // TODO fixed object boundaries
+    override var boundary: BoxBoundary = BoxBoundary()
+) : WorldObject {
 
-    val radius get() = sqrt(mass/Math.PI)
+    val radius get() = sqrt(mass / Math.PI)
 
     fun deepCopy() = copy(
         center = center.copy(),
@@ -57,8 +62,14 @@ data class CellState (
     )
 }
 
-data class FoodState (var center: Vector2, var mass: Double, override var id: Long = -1): WorldObject {
-    val radius get() = (mass/Math.PI).pow(1.0/4.0)
+data class FoodState(
+    var center: Vector2,
+    var mass: Double,
+    override var id: Long = -1,
+    // TODO fixed object boundaries
+    override var boundary: BoxBoundary = BoxBoundary()
+) : WorldObject {
+    val radius get() = (mass / Math.PI).pow(1.0 / 4.0)
 
     fun deepCopy() = copy(center = center.copy())
 }
